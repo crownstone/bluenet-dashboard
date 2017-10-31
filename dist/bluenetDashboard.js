@@ -21889,7 +21889,7 @@
 	var react_router_redux_1 = __webpack_require__(268);
 	var Pages_1 = __webpack_require__(273);
 	var store = redux_1.createStore(redux_1.combineReducers({ routing: react_router_redux_1.routerReducer }));
-	var history = react_router_redux_1.syncHistoryWithStore(react_router_1.browserHistory, store);
+	var history = react_router_redux_1.syncHistoryWithStore(react_router_1.hashHistory, store);
 	var App = (function (_super) {
 	    __extends(App, _super);
 	    function App() {
@@ -21897,11 +21897,13 @@
 	    }
 	    App.prototype.render = function () {
 	        return (React.createElement(react_redux_1.Provider, { store: store },
-	            React.createElement(react_router_1.Router, { history: history },
-	                React.createElement(react_router_1.Route, { path: "/index.html", component: Pages_1.Pages.AppContainer },
-	                    React.createElement(react_router_1.IndexRedirect, { to: '/' })),
+	            React.createElement(react_router_1.Router, { history: react_router_1.hashHistory },
 	                React.createElement(react_router_1.Route, { path: "/", component: Pages_1.Pages.AppContainer },
-	                    React.createElement(react_router_1.Route, { path: "*", component: Pages_1.Pages.Dashboard })),
+	                    React.createElement(react_router_1.IndexRedirect, { to: 'commands' })),
+	                React.createElement(react_router_1.Route, { path: "/", component: Pages_1.Pages.AppContainer },
+	                    React.createElement(react_router_1.Route, { path: "commands", component: Pages_1.Pages.Commands }),
+	                    React.createElement(react_router_1.Route, { path: "data", component: Pages_1.Pages.Data }),
+	                    React.createElement(react_router_1.Route, { path: "compare", component: Pages_1.Pages.Compare })),
 	                React.createElement(react_router_1.Route, { path: "*", component: Pages_1.Pages.Error404 }))));
 	    };
 	    return App;
@@ -28820,11 +28822,15 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	var AppContainer_1 = __webpack_require__(274);
-	var Dashboard_1 = __webpack_require__(517);
-	var Error404_1 = __webpack_require__(518);
+	var Commands_1 = __webpack_require__(517);
+	var Compare_1 = __webpack_require__(527);
+	var Data_1 = __webpack_require__(528);
+	var Error404_1 = __webpack_require__(529);
 	var Pages = {
 	    AppContainer: AppContainer_1.AppContainer,
-	    Dashboard: Dashboard_1.Dashboard,
+	    Commands: Commands_1.Commands,
+	    Compare: Compare_1.Compare,
+	    Data: Data_1.Data,
 	    Error404: Error404_1.Error404,
 	};
 	exports.Pages = Pages;
@@ -28852,7 +28858,7 @@
 	var MuiThemeProvider_1 = __webpack_require__(405);
 	var flexbox_react_1 = __webpack_require__(422);
 	var SideMenu_1 = __webpack_require__(425);
-	var Header_1 = __webpack_require__(507);
+	var Header_1 = __webpack_require__(509);
 	var styles_1 = __webpack_require__(516);
 	var muiTheme = getMuiTheme_1.default({
 	    fontFamily: 'Roboto',
@@ -38884,19 +38890,28 @@
 	var flexbox_react_1 = __webpack_require__(422);
 	var Menu_1 = __webpack_require__(426);
 	var MenuItem_1 = __webpack_require__(445);
+	var react_router_1 = __webpack_require__(215);
+	var styles_1 = __webpack_require__(507);
 	var SideMenu = (function (_super) {
 	    __extends(SideMenu, _super);
 	    function SideMenu() {
 	        return _super !== null && _super.apply(this, arguments) || this;
 	    }
 	    SideMenu.prototype.render = function () {
+	        var itemStyle = {
+	            borderStyle: 'solid',
+	            borderColor: styles_1.colors.black.rgba(0.2),
+	            marginBottom: 5,
+	            borderRightWidth: 3, borderLeftWidth: 0, borderTopWidth: 0, borderBottomWidth: 0
+	        };
 	        return (React.createElement(flexbox_react_1.default, { flexGrow: 1, flexDirection: "row", style: { marginLeft: 10, marginTop: 11 } },
 	            React.createElement(flexbox_react_1.default, { flexDirection: "column" },
 	                React.createElement(Menu_1.default, null,
-	                    React.createElement(MenuItem_1.default, { primaryText: "Dashboard", onTouchTap: function () { } }),
-	                    React.createElement(MenuItem_1.default, { primaryText: "Save Snapshot", onTouchTap: function () { } }),
-	                    React.createElement(MenuItem_1.default, { primaryText: "Load Snapshot", onTouchTap: function () { } }),
-	                    React.createElement(MenuItem_1.default, { primaryText: "Compare Snapshots", onTouchTap: function () { } })))));
+	                    React.createElement(MenuItem_1.default, { style: itemStyle, primaryText: "Commands", onTouchTap: function () { react_router_1.hashHistory.push('/commands'); } }),
+	                    React.createElement(MenuItem_1.default, { style: itemStyle, primaryText: "Data", onTouchTap: function () { react_router_1.hashHistory.push('/data'); } }),
+	                    React.createElement(MenuItem_1.default, { style: itemStyle, primaryText: "Save Snapshot", onTouchTap: function () { alert("not implemented yet"); } }),
+	                    React.createElement(MenuItem_1.default, { style: itemStyle, primaryText: "Load Snapshot", onTouchTap: function () { alert("not implemented yet"); } }),
+	                    React.createElement(MenuItem_1.default, { style: itemStyle, primaryText: "Compare Snapshots", onTouchTap: function () { react_router_1.hashHistory.push('/compare'); } })))));
 	    };
 	    return SideMenu;
 	}(React.Component));
@@ -46875,269 +46890,8 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var __extends = (this && this.__extends) || (function () {
-	    var extendStatics = Object.setPrototypeOf ||
-	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-	    return function (d, b) {
-	        extendStatics(d, b);
-	        function __() { this.constructor = d; }
-	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	    };
-	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
-	var React = __webpack_require__(1);
-	var flexbox_react_1 = __webpack_require__(422);
-	var CrownstoneState_1 = __webpack_require__(508);
-	var store_1 = __webpack_require__(509);
-	var buttonStyle = { margin: 14, marginRight: 0 };
-	var Header = (function (_super) {
-	    __extends(Header, _super);
-	    function Header() {
-	        return _super !== null && _super.apply(this, arguments) || this;
-	    }
-	    Header.prototype.componentDidMount = function () {
-	        var _this = this;
-	        this.unsubscribeStoreEvent = store_1.default.subscribe(function () {
-	            _this.forceUpdate();
-	        });
-	    };
-	    Header.prototype.componentWillUnmount = function () {
-	        this.unsubscribeStoreEvent();
-	    };
-	    Header.prototype.render = function () {
-	        var state = store_1.default.getState();
-	        var headerLabel = "Crownstone Dashboard: ";
-	        if (state.state.connected === true) {
-	            headerLabel += state.state.name + ' ' + state.state.macAddress;
-	        }
-	        else {
-	            headerLabel += " not connected.";
-	        }
-	        return (React.createElement(flexbox_react_1.default, { element: "header", flexDirection: "column", height: "109px", alignItems: "flex-start", justifyContent: "flex-start", style: { marginTop: 10, marginLeft: 25, marginRight: 14 } },
-	            React.createElement(flexbox_react_1.default, { flexGrow: 0.5 }),
-	            React.createElement("span", { style: { fontSize: 32, fontWeight: 'bold', paddingTop: 15 } }, headerLabel),
-	            React.createElement(flexbox_react_1.default, { flexGrow: 0.5 }),
-	            React.createElement(CrownstoneState_1.CrownstoneState, null),
-	            React.createElement(flexbox_react_1.default, { flexGrow: 0.1 })));
-	    };
-	    return Header;
-	}(React.Component));
-	exports.Header = Header;
-
-
-/***/ },
-/* 508 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || (function () {
-	    var extendStatics = Object.setPrototypeOf ||
-	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-	    return function (d, b) {
-	        extendStatics(d, b);
-	        function __() { this.constructor = d; }
-	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	    };
-	})();
-	Object.defineProperty(exports, "__esModule", { value: true });
-	var React = __webpack_require__(1);
-	var flexbox_react_1 = __webpack_require__(422);
-	var store_1 = __webpack_require__(509);
-	var StateIndicator_1 = __webpack_require__(513);
-	var styles_1 = __webpack_require__(514);
-	var buttonStyle = { margin: 14, marginRight: 0 };
-	var CrownstoneState = (function (_super) {
-	    __extends(CrownstoneState, _super);
-	    function CrownstoneState() {
-	        return _super !== null && _super.apply(this, arguments) || this;
-	    }
-	    CrownstoneState.prototype.render = function () {
-	        var state = store_1.default.getState();
-	        return (React.createElement(flexbox_react_1.default, null,
-	            React.createElement(StateIndicator_1.StateIndicator, { label: "mode: " + state.state.mode, keyValue: state.state.mode, colorMap: { DFU: styles_1.colors.purple, SETUP: styles_1.colors.blue, NORMAL: styles_1.colors.green, UNKNOWN: styles_1.colors.lightGray } }),
-	            React.createElement(StateIndicator_1.StateIndicator, { label: "connected", value: state.state.connected }),
-	            React.createElement(StateIndicator_1.StateIndicator, { label: "radio state", value: state.state.radioOn }),
-	            React.createElement(StateIndicator_1.StateIndicator, { label: "relay state", value: state.state.relayOn }),
-	            React.createElement(StateIndicator_1.StateIndicator, { label: "igbtState", numericValue: state.state.igbtState })));
-	    };
-	    return CrownstoneState;
-	}(React.Component));
-	exports.CrownstoneState = CrownstoneState;
-
-
-/***/ },
-/* 509 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
-	var redux_1 = __webpack_require__(185);
-	var reducer_1 = __webpack_require__(510);
-	exports.default = redux_1.createStore(reducer_1.default);
-
-
-/***/ },
-/* 510 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
-	var state_1 = __webpack_require__(511);
-	var defaultValue = {
-	    state: state_1.defaultStateSettings,
-	};
-	exports.default = function (state, action) {
-	    if (state === void 0) { state = defaultValue; }
-	    if (action === void 0) { action = {}; }
-	    if (action.type === 'CLEAR_STORE') {
-	        state = defaultValue;
-	    }
-	    else if (action.type === 'HYDRATE') {
-	        state = action.state;
-	    }
-	    return {
-	        state: state_1.stateReducer(state.state, action)
-	    };
-	};
-
-
-/***/ },
-/* 511 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __assign = (this && this.__assign) || Object.assign || function(t) {
-	    for (var s, i = 1, n = arguments.length; i < n; i++) {
-	        s = arguments[i];
-	        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-	            t[p] = s[p];
-	    }
-	    return t;
-	};
-	Object.defineProperty(exports, "__esModule", { value: true });
-	var reducerUtil_1 = __webpack_require__(512);
-	exports.defaultStateSettings = {
-	    connected: false,
-	    simulated: false,
-	    name: null,
-	    macAddress: null,
-	    mode: 'UNKNOWN',
-	    radioOn: false,
-	    meshEnabled: false,
-	    relayOn: false,
-	    igbtState: 0,
-	    updatedAt: 1,
-	};
-	exports.stateReducer = function (state, action) {
-	    if (state === void 0) { state = exports.defaultStateSettings; }
-	    if (action === void 0) { action = {}; }
-	    switch (action.type) {
-	        case 'STATE_UPDATE':
-	            if (action.data) {
-	                var newState = __assign({}, state);
-	                newState.connected = reducerUtil_1.update(action.data.connected, newState.connected);
-	                newState.simulated = reducerUtil_1.update(action.data.simulated, newState.simulated);
-	                newState.name = reducerUtil_1.update(action.data.name, newState.name);
-	                newState.macAddress = reducerUtil_1.update(action.data.macAddress, newState.macAddress);
-	                newState.mode = reducerUtil_1.update(action.data.mode, newState.mode);
-	                newState.meshEnabled = reducerUtil_1.update(action.data.meshEnabled, newState.meshEnabled);
-	                newState.radioOn = reducerUtil_1.update(action.data.radioOn, newState.radioOn);
-	                newState.relayOn = reducerUtil_1.update(action.data.relayOn, newState.relayOn);
-	                newState.igbtState = reducerUtil_1.update(action.data.igbtState, newState.igbtState);
-	                newState.updatedAt = reducerUtil_1.update(action.data.updatedAt, newState.updatedAt);
-	                return newState;
-	            }
-	            return state;
-	        default:
-	            return state;
-	    }
-	};
-
-
-/***/ },
-/* 512 */
-/***/ function(module, exports) {
-
-	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
-	function update(newValue, original) {
-	    return (newValue === undefined ? original : newValue);
-	}
-	exports.update = update;
-
-
-/***/ },
-/* 513 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || (function () {
-	    var extendStatics = Object.setPrototypeOf ||
-	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-	    return function (d, b) {
-	        extendStatics(d, b);
-	        function __() { this.constructor = d; }
-	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	    };
-	})();
-	Object.defineProperty(exports, "__esModule", { value: true });
-	var React = __webpack_require__(1);
-	var flexbox_react_1 = __webpack_require__(422);
-	var styles_1 = __webpack_require__(514);
-	var StateIndicator = (function (_super) {
-	    __extends(StateIndicator, _super);
-	    function StateIndicator() {
-	        return _super !== null && _super.apply(this, arguments) || this;
-	    }
-	    StateIndicator.prototype.render = function () {
-	        var backgroundColor = styles_1.colors.gray.rgba(0.5);
-	        var color = styles_1.colors.lightGray.hex;
-	        var coverFactor = 1;
-	        if (this.props.keyValue && this.props.colorMap) {
-	            color = this.props.colorMap[this.props.keyValue].hex;
-	        }
-	        else if (this.props.numericValue) {
-	            color = styles_1.colors.green.hex;
-	            coverFactor = this.props.numericValue;
-	        }
-	        else if (this.props.value) {
-	            color = styles_1.colors.green.hex;
-	        }
-	        var width = 180;
-	        var height = 30;
-	        return (React.createElement("div", { style: {
-	                height: height,
-	                width: width,
-	                marginRight: 15,
-	                paddingLeft: 0,
-	                paddingRight: 10,
-	                position: 'relative',
-	                borderColor: styles_1.colors.black.rgba(0.07),
-	                borderStyle: 'solid',
-	                borderWidth: 2,
-	                backgroundColor: backgroundColor,
-	                overflow: 'hidden',
-	                borderRadius: 6
-	            } },
-	            React.createElement(flexbox_react_1.default, { style: { position: 'absolute', top: 0, left: 0, width: width * coverFactor, height: height, backgroundColor: color, padding: 5 } }),
-	            React.createElement(flexbox_react_1.default, { alignItems: "center", justifyContent: "center", style: { position: 'absolute', top: 0, left: 0, width: width, height: height, padding: 5 } },
-	                React.createElement("span", { style: { color: color === styles_1.colors.lightGray.hex ? styles_1.colors.gray.hex : styles_1.colors.white.hex, height: 30 } }, this.props.label))));
-	    };
-	    return StateIndicator;
-	}(React.Component));
-	exports.StateIndicator = StateIndicator;
-
-
-/***/ },
-/* 514 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
-	var ColorConverters_1 = __webpack_require__(515);
+	var ColorConverters_1 = __webpack_require__(508);
 	exports.colors = {
 	    darkBackground: { hex: '#4f6b84' },
 	    csBlue: { hex: '#003E52' },
@@ -47186,7 +46940,7 @@
 
 
 /***/ },
-/* 515 */
+/* 508 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -47425,12 +47179,286 @@
 
 
 /***/ },
+/* 509 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || (function () {
+	    var extendStatics = Object.setPrototypeOf ||
+	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+	    return function (d, b) {
+	        extendStatics(d, b);
+	        function __() { this.constructor = d; }
+	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	    };
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var React = __webpack_require__(1);
+	var flexbox_react_1 = __webpack_require__(422);
+	var CrownstoneState_1 = __webpack_require__(510);
+	var store_1 = __webpack_require__(511);
+	var buttonStyle = { margin: 14, marginRight: 0 };
+	var Header = (function (_super) {
+	    __extends(Header, _super);
+	    function Header() {
+	        return _super !== null && _super.apply(this, arguments) || this;
+	    }
+	    Header.prototype.componentDidMount = function () {
+	        var _this = this;
+	        this.unsubscribeStoreEvent = store_1.default.subscribe(function () {
+	            _this.forceUpdate();
+	        });
+	    };
+	    Header.prototype.componentWillUnmount = function () {
+	        this.unsubscribeStoreEvent();
+	    };
+	    Header.prototype.render = function () {
+	        var state = store_1.default.getState();
+	        var headerLabel = "Crownstone Dashboard: ";
+	        if (state.state.connected === true) {
+	            headerLabel += state.state.name + ' ' + state.state.macAddress;
+	        }
+	        else {
+	            headerLabel += " not connected.";
+	        }
+	        return (React.createElement(flexbox_react_1.default, { element: "header", flexDirection: "column", height: "109px", alignItems: "flex-start", justifyContent: "flex-start", style: { marginTop: 10, marginLeft: 25, marginRight: 14 } },
+	            React.createElement(flexbox_react_1.default, { flexGrow: 0.5 }),
+	            React.createElement("span", { style: { fontSize: 32, fontWeight: 'bold', paddingTop: 15 } }, headerLabel),
+	            React.createElement(flexbox_react_1.default, { flexGrow: 0.5 }),
+	            React.createElement(CrownstoneState_1.CrownstoneState, null),
+	            React.createElement(flexbox_react_1.default, { flexGrow: 0.1 })));
+	    };
+	    return Header;
+	}(React.Component));
+	exports.Header = Header;
+
+
+/***/ },
+/* 510 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || (function () {
+	    var extendStatics = Object.setPrototypeOf ||
+	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+	    return function (d, b) {
+	        extendStatics(d, b);
+	        function __() { this.constructor = d; }
+	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	    };
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var React = __webpack_require__(1);
+	var flexbox_react_1 = __webpack_require__(422);
+	var store_1 = __webpack_require__(511);
+	var StateIndicator_1 = __webpack_require__(515);
+	var styles_1 = __webpack_require__(507);
+	var CrownstoneState = (function (_super) {
+	    __extends(CrownstoneState, _super);
+	    function CrownstoneState() {
+	        return _super !== null && _super.apply(this, arguments) || this;
+	    }
+	    CrownstoneState.prototype.render = function () {
+	        var state = store_1.default.getState();
+	        return (React.createElement(flexbox_react_1.default, null,
+	            React.createElement(StateIndicator_1.StateIndicator, { label: "mode: " + state.state.mode, keyValue: state.state.mode, colorMap: { DFU: styles_1.colors.purple, SETUP: styles_1.colors.blue, NORMAL: styles_1.colors.green, UNKNOWN: styles_1.colors.lightGray } }),
+	            React.createElement(StateIndicator_1.StateIndicator, { label: state.state.connected ? "connected" : 'not connected', value: state.state.connected }),
+	            React.createElement(StateIndicator_1.StateIndicator, { label: state.state.radioEnabled ? "radio ON" : 'radio OFF', value: state.state.radioEnabled }),
+	            React.createElement(StateIndicator_1.StateIndicator, { label: state.state.advertisementsEnabled ? "advertising" : 'not advertising', value: state.state.advertisementsEnabled }),
+	            React.createElement(StateIndicator_1.StateIndicator, { label: state.state.meshEnabled ? "meshing" : 'not meshing', value: state.state.meshEnabled }),
+	            React.createElement(StateIndicator_1.StateIndicator, { label: state.state.relayEnabled ? "relay ON" : 'relay OFF', value: state.state.relayEnabled }),
+	            React.createElement(StateIndicator_1.StateIndicator, { label: "IGBT state: " + state.state.igbtState, numericValue: state.state.igbtState })));
+	    };
+	    return CrownstoneState;
+	}(React.Component));
+	exports.CrownstoneState = CrownstoneState;
+
+
+/***/ },
+/* 511 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var redux_1 = __webpack_require__(185);
+	var reducer_1 = __webpack_require__(512);
+	exports.default = redux_1.createStore(reducer_1.default);
+
+
+/***/ },
+/* 512 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var state_1 = __webpack_require__(513);
+	var defaultValue = {
+	    state: state_1.defaultStateSettings,
+	};
+	exports.default = function (state, action) {
+	    if (state === void 0) { state = defaultValue; }
+	    if (action === void 0) { action = {}; }
+	    if (action.type === 'CLEAR_STORE') {
+	        state = defaultValue;
+	    }
+	    else if (action.type === 'HYDRATE') {
+	        state = action.state;
+	    }
+	    return {
+	        state: state_1.stateReducer(state.state, action)
+	    };
+	};
+
+
+/***/ },
+/* 513 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __assign = (this && this.__assign) || Object.assign || function(t) {
+	    for (var s, i = 1, n = arguments.length; i < n; i++) {
+	        s = arguments[i];
+	        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+	            t[p] = s[p];
+	    }
+	    return t;
+	};
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var reducerUtil_1 = __webpack_require__(514);
+	exports.defaultStateSettings = {
+	    connected: false,
+	    simulated: false,
+	    name: null,
+	    macAddress: null,
+	    mode: 'UNKNOWN',
+	    radioEnabled: false,
+	    advertisementsEnabled: false,
+	    meshEnabled: false,
+	    relayEnabled: false,
+	    igbtState: 0,
+	    voltageRange: 0,
+	    currentRange: 0,
+	    differentialVoltage: false,
+	    differentialCurrent: false,
+	    measureReference: false,
+	    updatedAt: 1,
+	};
+	exports.stateReducer = function (state, action) {
+	    if (state === void 0) { state = exports.defaultStateSettings; }
+	    if (action === void 0) { action = {}; }
+	    switch (action.type) {
+	        case 'STATE_UPDATE':
+	            if (action.data) {
+	                var newState = __assign({}, state);
+	                newState.connected = reducerUtil_1.update(action.data.connected, newState.connected);
+	                newState.simulated = reducerUtil_1.update(action.data.simulated, newState.simulated);
+	                newState.name = reducerUtil_1.update(action.data.name, newState.name);
+	                newState.macAddress = reducerUtil_1.update(action.data.macAddress, newState.macAddress);
+	                newState.mode = reducerUtil_1.update(action.data.mode, newState.mode);
+	                newState.meshEnabled = reducerUtil_1.update(action.data.meshEnabled, newState.meshEnabled);
+	                newState.advertisementsEnabled = reducerUtil_1.update(action.data.advertisementsEnabled, newState.advertisementsEnabled);
+	                newState.radioEnabled = reducerUtil_1.update(action.data.radioEnabled, newState.radioEnabled);
+	                newState.relayEnabled = reducerUtil_1.update(action.data.relayEnabled, newState.relayEnabled);
+	                newState.igbtState = reducerUtil_1.update(action.data.igbtState, newState.igbtState);
+	                newState.voltageRange = reducerUtil_1.update(action.data.voltageRange, newState.voltageRange);
+	                newState.currentRange = reducerUtil_1.update(action.data.currentRange, newState.currentRange);
+	                newState.differentialVoltage = reducerUtil_1.update(action.data.differentialVoltage, newState.differentialVoltage);
+	                newState.differentialCurrent = reducerUtil_1.update(action.data.differentialCurrent, newState.differentialCurrent);
+	                newState.measureReference = reducerUtil_1.update(action.data.measureReference, newState.measureReference);
+	                newState.updatedAt = reducerUtil_1.update(action.data.updatedAt, newState.updatedAt);
+	                return newState;
+	            }
+	            return state;
+	        default:
+	            return state;
+	    }
+	};
+
+
+/***/ },
+/* 514 */
+/***/ function(module, exports) {
+
+	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
+	function update(newValue, original) {
+	    return (newValue === undefined ? original : newValue);
+	}
+	exports.update = update;
+
+
+/***/ },
+/* 515 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || (function () {
+	    var extendStatics = Object.setPrototypeOf ||
+	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+	    return function (d, b) {
+	        extendStatics(d, b);
+	        function __() { this.constructor = d; }
+	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	    };
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var React = __webpack_require__(1);
+	var flexbox_react_1 = __webpack_require__(422);
+	var styles_1 = __webpack_require__(507);
+	var StateIndicator = (function (_super) {
+	    __extends(StateIndicator, _super);
+	    function StateIndicator() {
+	        return _super !== null && _super.apply(this, arguments) || this;
+	    }
+	    StateIndicator.prototype.render = function () {
+	        var backgroundColor = styles_1.colors.gray.rgba(0.5);
+	        var color = styles_1.colors.lightGray.hex;
+	        var coverFactor = 1;
+	        if (this.props.keyValue && this.props.colorMap) {
+	            color = this.props.colorMap[this.props.keyValue].hex;
+	        }
+	        else if (this.props.numericValue) {
+	            color = styles_1.colors.green.hex;
+	            coverFactor = this.props.numericValue;
+	        }
+	        else if (this.props.value) {
+	            color = styles_1.colors.green.hex;
+	        }
+	        var width = 180;
+	        var height = 30;
+	        return (React.createElement("div", { style: {
+	                height: height,
+	                width: width,
+	                marginRight: 15,
+	                paddingLeft: 0,
+	                paddingRight: 10,
+	                position: 'relative',
+	                borderColor: styles_1.colors.black.rgba(0.07),
+	                borderStyle: 'solid',
+	                borderWidth: 2,
+	                backgroundColor: backgroundColor,
+	                overflow: 'hidden',
+	                borderRadius: 6
+	            } },
+	            React.createElement(flexbox_react_1.default, { style: { position: 'absolute', top: 0, left: 0, width: width * coverFactor, height: height, backgroundColor: color, padding: 5 } }),
+	            React.createElement(flexbox_react_1.default, { alignItems: "center", justifyContent: "center", style: { position: 'absolute', top: 0, left: 0, width: width, height: height, padding: 5 } },
+	                React.createElement("span", { style: { color: color === styles_1.colors.lightGray.hex ? styles_1.colors.gray.hex : styles_1.colors.white.hex, height: 30 } }, this.props.label))));
+	    };
+	    return StateIndicator;
+	}(React.Component));
+	exports.StateIndicator = StateIndicator;
+
+
+/***/ },
 /* 516 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
-	var ColorConverters_1 = __webpack_require__(515);
+	var ColorConverters_1 = __webpack_require__(508);
 	exports.colors = {
 	    darkBackground: { hex: '#4f6b84' },
 	    csBlue: { hex: '#003E52' },
@@ -47502,24 +47530,26 @@
 	var getMuiTheme_1 = __webpack_require__(276);
 	var MuiThemeProvider_1 = __webpack_require__(405);
 	var flexbox_react_1 = __webpack_require__(422);
+	var CrownstoneCommands_1 = __webpack_require__(518);
 	var muiTheme = getMuiTheme_1.default({
 	    fontFamily: 'Roboto',
 	    palette: {
 	        accent1Color: colors_1.deepOrange500,
 	    },
 	});
-	var Dashboard = (function (_super) {
-	    __extends(Dashboard, _super);
-	    function Dashboard() {
+	var Commands = (function (_super) {
+	    __extends(Commands, _super);
+	    function Commands() {
 	        return _super !== null && _super.apply(this, arguments) || this;
 	    }
-	    Dashboard.prototype.render = function () {
+	    Commands.prototype.render = function () {
 	        return (React.createElement(MuiThemeProvider_1.default, { muiTheme: muiTheme },
-	            React.createElement(flexbox_react_1.default, { flexDirection: "column", minHeight: "100vh" }, "DashBoardy-x")));
+	            React.createElement(flexbox_react_1.default, { flexDirection: "column", minHeight: "100vh" },
+	                React.createElement(CrownstoneCommands_1.CrownstoneCommands, null))));
 	    };
-	    return Dashboard;
+	    return Commands;
 	}(React.Component));
-	exports.Dashboard = Dashboard;
+	exports.Commands = Commands;
 
 
 /***/ },
@@ -47539,12 +47569,1243 @@
 	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
 	var React = __webpack_require__(1);
+	var flexbox_react_1 = __webpack_require__(422);
+	var CsRange_1 = __webpack_require__(519);
+	var CsToggle_1 = __webpack_require__(522);
+	var CsButton_1 = __webpack_require__(526);
+	var store_1 = __webpack_require__(511);
+	var CrownstoneCommands = (function (_super) {
+	    __extends(CrownstoneCommands, _super);
+	    function CrownstoneCommands() {
+	        return _super !== null && _super.apply(this, arguments) || this;
+	    }
+	    CrownstoneCommands.prototype.render = function () {
+	        var state = store_1.default.getState();
+	        var spanStyle = { width: 160, marginBottom: 10, marginTop: 10, fontSize: 15, fontStyle: 'italic' };
+	        var segmentStyle = { marginBottom: 20, marginLeft: 20 };
+	        return (React.createElement(flexbox_react_1.default, { flexDirection: 'column', style: { marginLeft: 30, margin: 10, marginTop: 30 } },
+	            React.createElement("span", { style: spanStyle }, "Toggles:"),
+	            React.createElement(flexbox_react_1.default, { alignItems: "center", style: segmentStyle },
+	                React.createElement(CsToggle_1.CsToggle, { label: "Toggle Relay", toggle: function () { }, value: state.state.relayEnabled }),
+	                React.createElement(CsToggle_1.CsToggle, { label: "Toggle advertisements", toggle: function () { }, value: state.state.advertisementsEnabled }),
+	                React.createElement(CsToggle_1.CsToggle, { label: "Toggle Mesh", toggle: function () { }, value: state.state.meshEnabled })),
+	            React.createElement("span", { style: spanStyle }, "Set Ranges:"),
+	            React.createElement(flexbox_react_1.default, { alignItems: "center", style: segmentStyle },
+	                React.createElement(CsRange_1.CsRange, { label: "IGBT", increase: function () { }, decrease: function () { }, value: state.state.igbtState }),
+	                React.createElement(CsRange_1.CsRange, { label: "Voltage Range", increase: function () { }, decrease: function () { }, value: state.state.voltageRange }),
+	                React.createElement(CsRange_1.CsRange, { label: "Current Range", increase: function () { }, decrease: function () { }, value: state.state.currentRange })),
+	            React.createElement("span", { style: spanStyle }, "Measurements:"),
+	            React.createElement(flexbox_react_1.default, { alignItems: "center", style: segmentStyle },
+	                React.createElement(CsToggle_1.CsToggle, { label: "Differential Voltage", toggle: function () { }, value: state.state.differentialVoltage }),
+	                React.createElement(CsToggle_1.CsToggle, { label: "Differential Current", toggle: function () { }, value: state.state.differentialCurrent }),
+	                React.createElement(CsToggle_1.CsToggle, { label: "Measure Voltage / Reference", toggle: function () { }, value: state.state.measureReference })),
+	            React.createElement("span", { style: spanStyle }, "Commands:"),
+	            React.createElement(flexbox_react_1.default, { alignItems: "center", style: segmentStyle },
+	                React.createElement(CsButton_1.CsButton, { label: "Reset" }))));
+	    };
+	    return CrownstoneCommands;
+	}(React.Component));
+	exports.CrownstoneCommands = CrownstoneCommands;
+
+
+/***/ },
+/* 519 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || (function () {
+	    var extendStatics = Object.setPrototypeOf ||
+	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+	    return function (d, b) {
+	        extendStatics(d, b);
+	        function __() { this.constructor = d; }
+	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	    };
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var React = __webpack_require__(1);
+	var flexbox_react_1 = __webpack_require__(422);
+	var styles_1 = __webpack_require__(507);
+	var RaisedButton_1 = __webpack_require__(520);
+	var CsRange = (function (_super) {
+	    __extends(CsRange, _super);
+	    function CsRange() {
+	        return _super !== null && _super.apply(this, arguments) || this;
+	    }
+	    CsRange.prototype.render = function () {
+	        var _this = this;
+	        var size = 50;
+	        var buttonStyle = { width: size, minWidth: size, height: size, minHeight: size };
+	        return (React.createElement(flexbox_react_1.default, { flexDirection: "row", style: {
+	                width: 300,
+	                height: size,
+	                marginRight: 20,
+	                borderColor: styles_1.colors.black.rgba(0.1),
+	                borderStyle: 'solid',
+	                borderWidth: 1,
+	                borderRadius: 10,
+	                overflow: 'hidden'
+	            } },
+	            React.createElement(RaisedButton_1.default, { label: "-", primary: true, labelStyle: { color: styles_1.colors.white.hex, fontWeight: 'bolder', fontSize: 20 }, style: buttonStyle, onClick: function () { _this.props.decrease(); } }),
+	            React.createElement(flexbox_react_1.default, { flexGrow: 1, alignItems: 'center', justifyContent: 'center', flexDirection: "column" },
+	                React.createElement(flexbox_react_1.default, { flexGrow: 1 }),
+	                React.createElement("span", { style: { fontSize: 16, fontWeight: 'bold' } }, this.props.label),
+	                React.createElement(flexbox_react_1.default, { flexGrow: 1 }),
+	                React.createElement("span", { style: { fontSize: 14, color: styles_1.colors.gray.hex } }, "currentValue: " + (this.props.value || '?')),
+	                React.createElement(flexbox_react_1.default, { flexGrow: 1 })),
+	            React.createElement(RaisedButton_1.default, { label: "+", primary: true, labelStyle: { color: styles_1.colors.white.hex, fontWeight: 'bolder', fontSize: 20 }, style: buttonStyle, onClick: function () { _this.props.increase(); } })));
+	    };
+	    return CsRange;
+	}(React.Component));
+	exports.CsRange = CsRange;
+
+
+/***/ },
+/* 520 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = undefined;
+	
+	var _RaisedButton = __webpack_require__(521);
+	
+	var _RaisedButton2 = _interopRequireDefault(_RaisedButton);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	exports.default = _RaisedButton2.default;
+
+/***/ },
+/* 521 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _extends2 = __webpack_require__(428);
+	
+	var _extends3 = _interopRequireDefault(_extends2);
+	
+	var _objectWithoutProperties2 = __webpack_require__(433);
+	
+	var _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2);
+	
+	var _getPrototypeOf = __webpack_require__(406);
+	
+	var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
+	
+	var _classCallCheck2 = __webpack_require__(404);
+	
+	var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+	
+	var _createClass2 = __webpack_require__(409);
+	
+	var _createClass3 = _interopRequireDefault(_createClass2);
+	
+	var _possibleConstructorReturn2 = __webpack_require__(413);
+	
+	var _possibleConstructorReturn3 = _interopRequireDefault(_possibleConstructorReturn2);
+	
+	var _inherits2 = __webpack_require__(414);
+	
+	var _inherits3 = _interopRequireDefault(_inherits2);
+	
+	var _simpleAssign = __webpack_require__(435);
+	
+	var _simpleAssign2 = _interopRequireDefault(_simpleAssign);
+	
+	var _react = __webpack_require__(1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _transitions = __webpack_require__(469);
+	
+	var _transitions2 = _interopRequireDefault(_transitions);
+	
+	var _colorManipulator = __webpack_require__(332);
+	
+	var _childUtils = __webpack_require__(486);
+	
+	var _EnhancedButton = __webpack_require__(485);
+	
+	var _EnhancedButton2 = _interopRequireDefault(_EnhancedButton);
+	
+	var _Paper = __webpack_require__(467);
+	
+	var _Paper2 = _interopRequireDefault(_Paper);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function validateLabel(props, propName, componentName) {
+	  if (process.env.NODE_ENV !== 'production') {
+	    if (!props.children && props.label !== 0 && !props.label && !props.icon) {
+	      return new Error('Required prop label or children or icon was not specified in ' + componentName + '.');
+	    }
+	  }
+	}
+	
+	function getStyles(props, context, state) {
+	  var _context$muiTheme = context.muiTheme,
+	      baseTheme = _context$muiTheme.baseTheme,
+	      button = _context$muiTheme.button,
+	      raisedButton = _context$muiTheme.raisedButton;
+	  var disabled = props.disabled,
+	      disabledBackgroundColor = props.disabledBackgroundColor,
+	      disabledLabelColor = props.disabledLabelColor,
+	      fullWidth = props.fullWidth,
+	      icon = props.icon,
+	      label = props.label,
+	      labelPosition = props.labelPosition,
+	      primary = props.primary,
+	      secondary = props.secondary,
+	      style = props.style;
+	
+	
+	  var amount = primary || secondary ? 0.4 : 0.08;
+	
+	  var backgroundColor = raisedButton.color;
+	  var labelColor = raisedButton.textColor;
+	
+	  if (disabled) {
+	    backgroundColor = disabledBackgroundColor || raisedButton.disabledColor;
+	    labelColor = disabledLabelColor || raisedButton.disabledTextColor;
+	  } else if (primary) {
+	    backgroundColor = raisedButton.primaryColor;
+	    labelColor = raisedButton.primaryTextColor;
+	  } else if (secondary) {
+	    backgroundColor = raisedButton.secondaryColor;
+	    labelColor = raisedButton.secondaryTextColor;
+	  } else {
+	    if (props.backgroundColor) {
+	      backgroundColor = props.backgroundColor;
+	    }
+	    if (props.labelColor) {
+	      labelColor = props.labelColor;
+	    }
+	  }
+	
+	  var buttonHeight = style && style.height || button.height;
+	  var borderRadius = 2;
+	
+	  return {
+	    root: {
+	      display: 'inline-block',
+	      transition: _transitions2.default.easeOut(),
+	      minWidth: fullWidth ? '100%' : button.minWidth
+	    },
+	    button: {
+	      position: 'relative',
+	      height: buttonHeight,
+	      lineHeight: buttonHeight + 'px',
+	      width: '100%',
+	      padding: 0,
+	      borderRadius: borderRadius,
+	      transition: _transitions2.default.easeOut(),
+	      backgroundColor: backgroundColor,
+	      // That's the default value for a button but not a link
+	      textAlign: 'center'
+	    },
+	    label: {
+	      position: 'relative',
+	      opacity: 1,
+	      fontSize: raisedButton.fontSize,
+	      letterSpacing: 0,
+	      textTransform: raisedButton.textTransform || button.textTransform || 'uppercase',
+	      fontWeight: raisedButton.fontWeight,
+	      margin: 0,
+	      userSelect: 'none',
+	      paddingLeft: icon && labelPosition !== 'before' ? 8 : baseTheme.spacing.desktopGutterLess,
+	      paddingRight: icon && labelPosition === 'before' ? 8 : baseTheme.spacing.desktopGutterLess,
+	      color: labelColor
+	    },
+	    icon: {
+	      verticalAlign: 'middle',
+	      marginLeft: label && labelPosition !== 'before' ? 12 : 0,
+	      marginRight: label && labelPosition === 'before' ? 12 : 0
+	    },
+	    overlay: {
+	      height: buttonHeight,
+	      borderRadius: borderRadius,
+	      backgroundColor: (state.keyboardFocused || state.hovered) && !disabled && (0, _colorManipulator.fade)(labelColor, amount),
+	      transition: _transitions2.default.easeOut(),
+	      top: 0
+	    },
+	    ripple: {
+	      color: labelColor,
+	      opacity: !(primary || secondary) ? 0.1 : 0.16
+	    }
+	  };
+	}
+	
+	var RaisedButton = function (_Component) {
+	  (0, _inherits3.default)(RaisedButton, _Component);
+	
+	  function RaisedButton() {
+	    var _ref;
+	
+	    var _temp, _this, _ret;
+	
+	    (0, _classCallCheck3.default)(this, RaisedButton);
+	
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+	
+	    return _ret = (_temp = (_this = (0, _possibleConstructorReturn3.default)(this, (_ref = RaisedButton.__proto__ || (0, _getPrototypeOf2.default)(RaisedButton)).call.apply(_ref, [this].concat(args))), _this), _this.state = {
+	      hovered: false,
+	      keyboardFocused: false,
+	      touched: false,
+	      initialZDepth: 0,
+	      zDepth: 0
+	    }, _this.handleMouseDown = function (event) {
+	      // only listen to left clicks
+	      if (event.button === 0) {
+	        _this.setState({
+	          zDepth: _this.state.initialZDepth + 1
+	        });
+	      }
+	      if (_this.props.onMouseDown) {
+	        _this.props.onMouseDown(event);
+	      }
+	    }, _this.handleMouseUp = function (event) {
+	      _this.setState({
+	        zDepth: _this.state.initialZDepth
+	      });
+	      if (_this.props.onMouseUp) {
+	        _this.props.onMouseUp(event);
+	      }
+	    }, _this.handleMouseLeave = function (event) {
+	      if (!_this.state.keyboardFocused) {
+	        _this.setState({
+	          zDepth: _this.state.initialZDepth,
+	          hovered: false
+	        });
+	      }
+	      if (_this.props.onMouseLeave) {
+	        _this.props.onMouseLeave(event);
+	      }
+	    }, _this.handleMouseEnter = function (event) {
+	      if (!_this.state.keyboardFocused && !_this.state.touched) {
+	        _this.setState({
+	          hovered: true
+	        });
+	      }
+	      if (_this.props.onMouseEnter) {
+	        _this.props.onMouseEnter(event);
+	      }
+	    }, _this.handleTouchStart = function (event) {
+	      _this.setState({
+	        touched: true,
+	        zDepth: _this.state.initialZDepth + 1
+	      });
+	
+	      if (_this.props.onTouchStart) {
+	        _this.props.onTouchStart(event);
+	      }
+	    }, _this.handleTouchEnd = function (event) {
+	      _this.setState({
+	        touched: true,
+	        zDepth: _this.state.initialZDepth
+	      });
+	
+	      if (_this.props.onTouchEnd) {
+	        _this.props.onTouchEnd(event);
+	      }
+	    }, _this.handleKeyboardFocus = function (event, keyboardFocused) {
+	      var zDepth = keyboardFocused && !_this.props.disabled ? _this.state.initialZDepth + 1 : _this.state.initialZDepth;
+	
+	      _this.setState({
+	        zDepth: zDepth,
+	        keyboardFocused: keyboardFocused
+	      });
+	    }, _temp), (0, _possibleConstructorReturn3.default)(_this, _ret);
+	  }
+	
+	  (0, _createClass3.default)(RaisedButton, [{
+	    key: 'componentWillMount',
+	    value: function componentWillMount() {
+	      var zDepth = this.props.disabled ? 0 : 1;
+	      this.setState({
+	        zDepth: zDepth,
+	        initialZDepth: zDepth
+	      });
+	    }
+	  }, {
+	    key: 'componentWillReceiveProps',
+	    value: function componentWillReceiveProps(nextProps) {
+	      var zDepth = nextProps.disabled ? 0 : 1;
+	      var nextState = {
+	        zDepth: zDepth,
+	        initialZDepth: zDepth
+	      };
+	
+	      if (nextProps.disabled) {
+	        nextState.hovered = false;
+	      }
+	
+	      this.setState(nextState);
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var _props = this.props,
+	          backgroundColor = _props.backgroundColor,
+	          buttonStyle = _props.buttonStyle,
+	          children = _props.children,
+	          className = _props.className,
+	          disabled = _props.disabled,
+	          disabledBackgroundColor = _props.disabledBackgroundColor,
+	          disabledLabelColor = _props.disabledLabelColor,
+	          fullWidth = _props.fullWidth,
+	          icon = _props.icon,
+	          label = _props.label,
+	          labelColor = _props.labelColor,
+	          labelPosition = _props.labelPosition,
+	          labelStyle = _props.labelStyle,
+	          overlayStyle = _props.overlayStyle,
+	          primary = _props.primary,
+	          rippleStyle = _props.rippleStyle,
+	          secondary = _props.secondary,
+	          style = _props.style,
+	          other = (0, _objectWithoutProperties3.default)(_props, ['backgroundColor', 'buttonStyle', 'children', 'className', 'disabled', 'disabledBackgroundColor', 'disabledLabelColor', 'fullWidth', 'icon', 'label', 'labelColor', 'labelPosition', 'labelStyle', 'overlayStyle', 'primary', 'rippleStyle', 'secondary', 'style']);
+	      var prepareStyles = this.context.muiTheme.prepareStyles;
+	
+	      var styles = getStyles(this.props, this.context, this.state);
+	      var mergedRippleStyles = (0, _simpleAssign2.default)({}, styles.ripple, rippleStyle);
+	
+	      var buttonEventHandlers = disabled ? {} : {
+	        onMouseDown: this.handleMouseDown,
+	        onMouseUp: this.handleMouseUp,
+	        onMouseLeave: this.handleMouseLeave,
+	        onMouseEnter: this.handleMouseEnter,
+	        onTouchStart: this.handleTouchStart,
+	        onTouchEnd: this.handleTouchEnd,
+	        onKeyboardFocus: this.handleKeyboardFocus
+	      };
+	
+	      var labelElement = label && _react2.default.createElement(
+	        'span',
+	        { style: prepareStyles((0, _simpleAssign2.default)(styles.label, labelStyle)) },
+	        label
+	      );
+	
+	      var iconCloned = icon && (0, _react.cloneElement)(icon, {
+	        color: icon.props.color || styles.label.color,
+	        style: (0, _simpleAssign2.default)(styles.icon, icon.props.style)
+	      });
+	
+	      // Place label before or after children.
+	      var childrenFragment = labelPosition === 'before' ? {
+	        labelElement: labelElement,
+	        iconCloned: iconCloned,
+	        children: children
+	      } : {
+	        children: children,
+	        iconCloned: iconCloned,
+	        labelElement: labelElement
+	      };
+	
+	      var enhancedButtonChildren = (0, _childUtils.createChildFragment)(childrenFragment);
+	
+	      return _react2.default.createElement(
+	        _Paper2.default,
+	        {
+	          className: className,
+	          style: (0, _simpleAssign2.default)(styles.root, style),
+	          zDepth: this.state.zDepth
+	        },
+	        _react2.default.createElement(
+	          _EnhancedButton2.default,
+	          (0, _extends3.default)({}, other, buttonEventHandlers, {
+	            ref: 'container',
+	            disabled: disabled,
+	            style: (0, _simpleAssign2.default)(styles.button, buttonStyle),
+	            focusRippleColor: mergedRippleStyles.color,
+	            touchRippleColor: mergedRippleStyles.color,
+	            focusRippleOpacity: mergedRippleStyles.opacity,
+	            touchRippleOpacity: mergedRippleStyles.opacity
+	          }),
+	          _react2.default.createElement(
+	            'div',
+	            {
+	              ref: 'overlay',
+	              style: prepareStyles((0, _simpleAssign2.default)(styles.overlay, overlayStyle))
+	            },
+	            enhancedButtonChildren
+	          )
+	        )
+	      );
+	    }
+	  }]);
+	  return RaisedButton;
+	}(_react.Component);
+	
+	RaisedButton.muiName = 'RaisedButton';
+	RaisedButton.defaultProps = {
+	  disabled: false,
+	  labelPosition: 'after',
+	  fullWidth: false,
+	  primary: false,
+	  secondary: false
+	};
+	RaisedButton.contextTypes = {
+	  muiTheme: _react.PropTypes.object.isRequired
+	};
+	process.env.NODE_ENV !== "production" ? RaisedButton.propTypes = {
+	  /**
+	   * Override the default background color for the button,
+	   * but not the default disabled background color
+	   * (use `disabledBackgroundColor` for this).
+	   */
+	  backgroundColor: _react.PropTypes.string,
+	  /**
+	   * Override the inline-styles of the button element.
+	   */
+	  buttonStyle: _react.PropTypes.object,
+	  /**
+	   * The content of the button.
+	   * If a label is provided via the `label` prop, the text within the label
+	   * will be displayed in addition to the content provided here.
+	   */
+	  children: _react.PropTypes.node,
+	  /**
+	   * The CSS class name of the root element.
+	   */
+	  className: _react.PropTypes.string,
+	  /**
+	   * If true, the button will be disabled.
+	   */
+	  disabled: _react.PropTypes.bool,
+	  /**
+	   * Override the default background color for the button
+	   * when it is disabled.
+	   */
+	  disabledBackgroundColor: _react.PropTypes.string,
+	  /**
+	   * The color of the button's label when the button is disabled.
+	   */
+	  disabledLabelColor: _react.PropTypes.string,
+	  /**
+	   * If true, the button will take up the full width of its container.
+	   */
+	  fullWidth: _react.PropTypes.bool,
+	  /**
+	   * The URL to link to when the button is clicked.
+	   */
+	  href: _react.PropTypes.string,
+	  /**
+	   * An icon to be displayed within the button.
+	   */
+	  icon: _react.PropTypes.node,
+	  /**
+	   * The label to be displayed within the button.
+	   * If content is provided via the `children` prop, that content will be
+	   * displayed in addition to the label provided here.
+	   */
+	  label: validateLabel,
+	  /**
+	   * The color of the button's label.
+	   */
+	  labelColor: _react.PropTypes.string,
+	  /**
+	   * The position of the button's label relative to the button's `children`.
+	   */
+	  labelPosition: _react.PropTypes.oneOf(['before', 'after']),
+	  /**
+	   * Override the inline-styles of the button's label element.
+	   */
+	  labelStyle: _react.PropTypes.object,
+	  /** @ignore */
+	  onMouseDown: _react.PropTypes.func,
+	  /** @ignore */
+	  onMouseEnter: _react.PropTypes.func,
+	  /** @ignore */
+	  onMouseLeave: _react.PropTypes.func,
+	  /** @ignore */
+	  onMouseUp: _react.PropTypes.func,
+	  /** @ignore */
+	  onTouchEnd: _react.PropTypes.func,
+	  /** @ignore */
+	  onTouchStart: _react.PropTypes.func,
+	  /**
+	   * Override the inline style of the button overlay.
+	   */
+	  overlayStyle: _react.PropTypes.object,
+	  /**
+	   * If true, the button will use the theme's primary color.
+	   */
+	  primary: _react.PropTypes.bool,
+	  /**
+	   * Override the inline style of the ripple element.
+	   */
+	  rippleStyle: _react.PropTypes.object,
+	  /**
+	   * If true, the button will use the theme's secondary color.
+	   * If both `secondary` and `primary` are true, the button will use
+	   * the theme's primary color.
+	   */
+	  secondary: _react.PropTypes.bool,
+	  /**
+	   * Override the inline-styles of the root element.
+	   */
+	  style: _react.PropTypes.object
+	} : void 0;
+	exports.default = RaisedButton;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+
+/***/ },
+/* 522 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || (function () {
+	    var extendStatics = Object.setPrototypeOf ||
+	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+	    return function (d, b) {
+	        extendStatics(d, b);
+	        function __() { this.constructor = d; }
+	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	    };
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var React = __webpack_require__(1);
+	var flexbox_react_1 = __webpack_require__(422);
+	var FlatButton_1 = __webpack_require__(523);
+	var styles_1 = __webpack_require__(507);
+	var CsToggle = (function (_super) {
+	    __extends(CsToggle, _super);
+	    function CsToggle() {
+	        return _super !== null && _super.apply(this, arguments) || this;
+	    }
+	    CsToggle.prototype.render = function () {
+	        var _this = this;
+	        return (React.createElement(flexbox_react_1.default, { style: {
+	                marginRight: 20,
+	                width: 300,
+	                borderRadius: 10,
+	                height: 50,
+	                borderStyle: 'solid',
+	                borderWidth: 1,
+	                borderColor: styles_1.colors.black.rgba(0.1),
+	                overflow: 'hidden'
+	            } },
+	            React.createElement(FlatButton_1.default, { backgroundColor: this.props.value ? styles_1.colors.green.hex : styles_1.colors.csBlue.hex, label: this.props.label, hoverColor: styles_1.colors.csOrange.hex, labelStyle: { color: styles_1.colors.white.hex }, style: {
+	                    width: 300,
+	                    height: 50,
+	                }, onClick: function () { _this.props.toggle(); } })));
+	    };
+	    return CsToggle;
+	}(React.Component));
+	exports.CsToggle = CsToggle;
+
+
+/***/ },
+/* 523 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = undefined;
+	
+	var _FlatButton = __webpack_require__(524);
+	
+	var _FlatButton2 = _interopRequireDefault(_FlatButton);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	exports.default = _FlatButton2.default;
+
+/***/ },
+/* 524 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _extends2 = __webpack_require__(428);
+	
+	var _extends3 = _interopRequireDefault(_extends2);
+	
+	var _objectWithoutProperties2 = __webpack_require__(433);
+	
+	var _objectWithoutProperties3 = _interopRequireDefault(_objectWithoutProperties2);
+	
+	var _getPrototypeOf = __webpack_require__(406);
+	
+	var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
+	
+	var _classCallCheck2 = __webpack_require__(404);
+	
+	var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+	
+	var _createClass2 = __webpack_require__(409);
+	
+	var _createClass3 = _interopRequireDefault(_createClass2);
+	
+	var _possibleConstructorReturn2 = __webpack_require__(413);
+	
+	var _possibleConstructorReturn3 = _interopRequireDefault(_possibleConstructorReturn2);
+	
+	var _inherits2 = __webpack_require__(414);
+	
+	var _inherits3 = _interopRequireDefault(_inherits2);
+	
+	var _simpleAssign = __webpack_require__(435);
+	
+	var _simpleAssign2 = _interopRequireDefault(_simpleAssign);
+	
+	var _react = __webpack_require__(1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _transitions = __webpack_require__(469);
+	
+	var _transitions2 = _interopRequireDefault(_transitions);
+	
+	var _childUtils = __webpack_require__(486);
+	
+	var _colorManipulator = __webpack_require__(332);
+	
+	var _EnhancedButton = __webpack_require__(485);
+	
+	var _EnhancedButton2 = _interopRequireDefault(_EnhancedButton);
+	
+	var _FlatButtonLabel = __webpack_require__(525);
+	
+	var _FlatButtonLabel2 = _interopRequireDefault(_FlatButtonLabel);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function validateLabel(props, propName, componentName) {
+	  if (process.env.NODE_ENV !== 'production') {
+	    if (!props.children && props.label !== 0 && !props.label && !props.icon) {
+	      return new Error('Required prop label or children or icon was not specified in ' + componentName + '.');
+	    }
+	  }
+	}
+	
+	var FlatButton = function (_Component) {
+	  (0, _inherits3.default)(FlatButton, _Component);
+	
+	  function FlatButton() {
+	    var _ref;
+	
+	    var _temp, _this, _ret;
+	
+	    (0, _classCallCheck3.default)(this, FlatButton);
+	
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+	
+	    return _ret = (_temp = (_this = (0, _possibleConstructorReturn3.default)(this, (_ref = FlatButton.__proto__ || (0, _getPrototypeOf2.default)(FlatButton)).call.apply(_ref, [this].concat(args))), _this), _this.state = {
+	      hovered: false,
+	      isKeyboardFocused: false,
+	      touch: false
+	    }, _this.handleKeyboardFocus = function (event, isKeyboardFocused) {
+	      _this.setState({ isKeyboardFocused: isKeyboardFocused });
+	      _this.props.onKeyboardFocus(event, isKeyboardFocused);
+	    }, _this.handleMouseEnter = function (event) {
+	      // Cancel hover styles for touch devices
+	      if (!_this.state.touch) _this.setState({ hovered: true });
+	      _this.props.onMouseEnter(event);
+	    }, _this.handleMouseLeave = function (event) {
+	      _this.setState({ hovered: false });
+	      _this.props.onMouseLeave(event);
+	    }, _this.handleTouchStart = function (event) {
+	      _this.setState({ touch: true });
+	      _this.props.onTouchStart(event);
+	    }, _temp), (0, _possibleConstructorReturn3.default)(_this, _ret);
+	  }
+	
+	  (0, _createClass3.default)(FlatButton, [{
+	    key: 'componentWillReceiveProps',
+	    value: function componentWillReceiveProps(nextProps) {
+	      if (nextProps.disabled) {
+	        this.setState({
+	          hovered: false
+	        });
+	      }
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var _props = this.props,
+	          children = _props.children,
+	          disabled = _props.disabled,
+	          hoverColor = _props.hoverColor,
+	          backgroundColor = _props.backgroundColor,
+	          icon = _props.icon,
+	          label = _props.label,
+	          labelStyle = _props.labelStyle,
+	          labelPosition = _props.labelPosition,
+	          primary = _props.primary,
+	          rippleColor = _props.rippleColor,
+	          secondary = _props.secondary,
+	          style = _props.style,
+	          other = (0, _objectWithoutProperties3.default)(_props, ['children', 'disabled', 'hoverColor', 'backgroundColor', 'icon', 'label', 'labelStyle', 'labelPosition', 'primary', 'rippleColor', 'secondary', 'style']);
+	      var _context$muiTheme = this.context.muiTheme,
+	          _context$muiTheme$but = _context$muiTheme.button,
+	          buttonHeight = _context$muiTheme$but.height,
+	          buttonMinWidth = _context$muiTheme$but.minWidth,
+	          buttonTextTransform = _context$muiTheme$but.textTransform,
+	          _context$muiTheme$fla = _context$muiTheme.flatButton,
+	          buttonFilterColor = _context$muiTheme$fla.buttonFilterColor,
+	          buttonColor = _context$muiTheme$fla.color,
+	          disabledTextColor = _context$muiTheme$fla.disabledTextColor,
+	          fontSize = _context$muiTheme$fla.fontSize,
+	          fontWeight = _context$muiTheme$fla.fontWeight,
+	          primaryTextColor = _context$muiTheme$fla.primaryTextColor,
+	          secondaryTextColor = _context$muiTheme$fla.secondaryTextColor,
+	          textColor = _context$muiTheme$fla.textColor,
+	          _context$muiTheme$fla2 = _context$muiTheme$fla.textTransform,
+	          textTransform = _context$muiTheme$fla2 === undefined ? buttonTextTransform || 'uppercase' : _context$muiTheme$fla2;
+	
+	      var defaultTextColor = disabled ? disabledTextColor : primary ? primaryTextColor : secondary ? secondaryTextColor : textColor;
+	
+	      var defaultHoverColor = (0, _colorManipulator.fade)(buttonFilterColor, 0.2);
+	      var defaultRippleColor = buttonFilterColor;
+	      var buttonHoverColor = hoverColor || defaultHoverColor;
+	      var buttonRippleColor = rippleColor || defaultRippleColor;
+	      var buttonBackgroundColor = backgroundColor || buttonColor;
+	      var hovered = (this.state.hovered || this.state.isKeyboardFocused) && !disabled;
+	
+	      var mergedRootStyles = (0, _simpleAssign2.default)({}, {
+	        height: buttonHeight,
+	        lineHeight: buttonHeight + 'px',
+	        minWidth: buttonMinWidth,
+	        color: defaultTextColor,
+	        transition: _transitions2.default.easeOut(),
+	        borderRadius: 2,
+	        userSelect: 'none',
+	        position: 'relative',
+	        overflow: 'hidden',
+	        backgroundColor: hovered ? buttonHoverColor : buttonBackgroundColor,
+	        padding: 0,
+	        margin: 0,
+	        textAlign: 'center'
+	      }, style);
+	
+	      var iconCloned = void 0;
+	      var labelStyleIcon = {};
+	
+	      if (icon) {
+	        var iconStyles = (0, _simpleAssign2.default)({
+	          verticalAlign: 'middle',
+	          marginLeft: label && labelPosition !== 'before' ? 12 : 0,
+	          marginRight: label && labelPosition === 'before' ? 12 : 0
+	        }, icon.props.style);
+	        iconCloned = _react2.default.cloneElement(icon, {
+	          color: icon.props.color || mergedRootStyles.color,
+	          style: iconStyles
+	        });
+	
+	        if (labelPosition === 'before') {
+	          labelStyleIcon.paddingRight = 8;
+	        } else {
+	          labelStyleIcon.paddingLeft = 8;
+	        }
+	      }
+	
+	      var mergedLabelStyles = (0, _simpleAssign2.default)({
+	        letterSpacing: 0,
+	        textTransform: textTransform,
+	        fontWeight: fontWeight,
+	        fontSize: fontSize
+	      }, labelStyleIcon, labelStyle);
+	
+	      var labelElement = label ? _react2.default.createElement(_FlatButtonLabel2.default, { label: label, style: mergedLabelStyles }) : undefined;
+	
+	      // Place label before or after children.
+	      var childrenFragment = labelPosition === 'before' ? {
+	        labelElement: labelElement,
+	        iconCloned: iconCloned,
+	        children: children
+	      } : {
+	        children: children,
+	        iconCloned: iconCloned,
+	        labelElement: labelElement
+	      };
+	
+	      var enhancedButtonChildren = (0, _childUtils.createChildFragment)(childrenFragment);
+	
+	      return _react2.default.createElement(
+	        _EnhancedButton2.default,
+	        (0, _extends3.default)({}, other, {
+	          disabled: disabled,
+	          focusRippleColor: buttonRippleColor,
+	          focusRippleOpacity: 0.3,
+	          onKeyboardFocus: this.handleKeyboardFocus,
+	          onMouseLeave: this.handleMouseLeave,
+	          onMouseEnter: this.handleMouseEnter,
+	          onTouchStart: this.handleTouchStart,
+	          style: mergedRootStyles,
+	          touchRippleColor: buttonRippleColor,
+	          touchRippleOpacity: 0.3
+	        }),
+	        enhancedButtonChildren
+	      );
+	    }
+	  }]);
+	  return FlatButton;
+	}(_react.Component);
+	
+	FlatButton.muiName = 'FlatButton';
+	FlatButton.defaultProps = {
+	  disabled: false,
+	  labelStyle: {},
+	  labelPosition: 'after',
+	  onKeyboardFocus: function onKeyboardFocus() {},
+	  onMouseEnter: function onMouseEnter() {},
+	  onMouseLeave: function onMouseLeave() {},
+	  onTouchStart: function onTouchStart() {},
+	  primary: false,
+	  secondary: false
+	};
+	FlatButton.contextTypes = {
+	  muiTheme: _react.PropTypes.object.isRequired
+	};
+	process.env.NODE_ENV !== "production" ? FlatButton.propTypes = {
+	  /**
+	   * Color of button when mouse is not hovering over it.
+	   */
+	  backgroundColor: _react.PropTypes.string,
+	  /**
+	   * This is what will be displayed inside the button.
+	   * If a label is specified, the text within the label prop will
+	   * be displayed. Otherwise, the component will expect children
+	   * which will then be displayed. (In our example,
+	   * we are nesting an `<input type="file" />` and a `span`
+	   * that acts as our label to be displayed.) This only
+	   * applies to flat and raised buttons.
+	   */
+	  children: _react.PropTypes.node,
+	  /**
+	   * Disables the button if set to true.
+	   */
+	  disabled: _react.PropTypes.bool,
+	  /**
+	   * Color of button when mouse hovers over.
+	   */
+	  hoverColor: _react.PropTypes.string,
+	  /**
+	   * The URL to link to when the button is clicked.
+	   */
+	  href: _react.PropTypes.string,
+	  /**
+	   * Use this property to display an icon.
+	   */
+	  icon: _react.PropTypes.node,
+	  /**
+	   * Label for the button.
+	   */
+	  label: validateLabel,
+	  /**
+	   * Place label before or after the passed children.
+	   */
+	  labelPosition: _react.PropTypes.oneOf(['before', 'after']),
+	  /**
+	   * Override the inline-styles of the button's label element.
+	   */
+	  labelStyle: _react.PropTypes.object,
+	  /**
+	   * Callback function fired when the element is focused or blurred by the keyboard.
+	   *
+	   * @param {object} event `focus` or `blur` event targeting the element.
+	   * @param {boolean} isKeyboardFocused Indicates whether the element is focused.
+	   */
+	  onKeyboardFocus: _react.PropTypes.func,
+	  /** @ignore */
+	  onMouseEnter: _react.PropTypes.func,
+	  /** @ignore */
+	  onMouseLeave: _react.PropTypes.func,
+	  /** @ignore */
+	  onTouchStart: _react.PropTypes.func,
+	  /**
+	   * If true, colors button according to
+	   * primaryTextColor from the Theme.
+	   */
+	  primary: _react.PropTypes.bool,
+	  /**
+	   * Color for the ripple after button is clicked.
+	   */
+	  rippleColor: _react.PropTypes.string,
+	  /**
+	   * If true, colors button according to secondaryTextColor from the theme.
+	   * The primary prop has precendent if set to true.
+	   */
+	  secondary: _react.PropTypes.bool,
+	  /**
+	   * Override the inline-styles of the root element.
+	   */
+	  style: _react.PropTypes.object
+	} : void 0;
+	exports.default = FlatButton;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+
+/***/ },
+/* 525 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _getPrototypeOf = __webpack_require__(406);
+	
+	var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
+	
+	var _classCallCheck2 = __webpack_require__(404);
+	
+	var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+	
+	var _createClass2 = __webpack_require__(409);
+	
+	var _createClass3 = _interopRequireDefault(_createClass2);
+	
+	var _possibleConstructorReturn2 = __webpack_require__(413);
+	
+	var _possibleConstructorReturn3 = _interopRequireDefault(_possibleConstructorReturn2);
+	
+	var _inherits2 = __webpack_require__(414);
+	
+	var _inherits3 = _interopRequireDefault(_inherits2);
+	
+	var _simpleAssign = __webpack_require__(435);
+	
+	var _simpleAssign2 = _interopRequireDefault(_simpleAssign);
+	
+	var _react = __webpack_require__(1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function getStyles(props, context) {
+	  var baseTheme = context.muiTheme.baseTheme;
+	
+	
+	  return {
+	    root: {
+	      position: 'relative',
+	      paddingLeft: baseTheme.spacing.desktopGutterLess,
+	      paddingRight: baseTheme.spacing.desktopGutterLess,
+	      verticalAlign: 'middle'
+	    }
+	  };
+	}
+	
+	var FlatButtonLabel = function (_Component) {
+	  (0, _inherits3.default)(FlatButtonLabel, _Component);
+	
+	  function FlatButtonLabel() {
+	    (0, _classCallCheck3.default)(this, FlatButtonLabel);
+	    return (0, _possibleConstructorReturn3.default)(this, (FlatButtonLabel.__proto__ || (0, _getPrototypeOf2.default)(FlatButtonLabel)).apply(this, arguments));
+	  }
+	
+	  (0, _createClass3.default)(FlatButtonLabel, [{
+	    key: 'render',
+	    value: function render() {
+	      var _props = this.props,
+	          label = _props.label,
+	          style = _props.style;
+	      var prepareStyles = this.context.muiTheme.prepareStyles;
+	
+	      var styles = getStyles(this.props, this.context);
+	
+	      return _react2.default.createElement(
+	        'span',
+	        { style: prepareStyles((0, _simpleAssign2.default)(styles.root, style)) },
+	        label
+	      );
+	    }
+	  }]);
+	  return FlatButtonLabel;
+	}(_react.Component);
+	
+	FlatButtonLabel.contextTypes = {
+	  muiTheme: _react.PropTypes.object.isRequired
+	};
+	process.env.NODE_ENV !== "production" ? FlatButtonLabel.propTypes = {
+	  label: _react.PropTypes.node,
+	  style: _react.PropTypes.object
+	} : void 0;
+	exports.default = FlatButtonLabel;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+
+/***/ },
+/* 526 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || (function () {
+	    var extendStatics = Object.setPrototypeOf ||
+	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+	    return function (d, b) {
+	        extendStatics(d, b);
+	        function __() { this.constructor = d; }
+	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	    };
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var React = __webpack_require__(1);
+	var flexbox_react_1 = __webpack_require__(422);
+	var styles_1 = __webpack_require__(507);
+	var RaisedButton_1 = __webpack_require__(520);
+	var CsButton = (function (_super) {
+	    __extends(CsButton, _super);
+	    function CsButton() {
+	        return _super !== null && _super.apply(this, arguments) || this;
+	    }
+	    CsButton.prototype.render = function () {
+	        var _this = this;
+	        return (React.createElement(flexbox_react_1.default, { style: {
+	                marginRight: 20,
+	                width: 300,
+	                borderRadius: 10,
+	                height: 50,
+	                borderStyle: 'solid',
+	                borderWidth: 1,
+	                borderColor: styles_1.colors.black.rgba(0.1),
+	                overflow: 'hidden'
+	            } },
+	            React.createElement(RaisedButton_1.default, { backgroundColor: this.props.value ? styles_1.colors.green.hex : styles_1.colors.csBlue.hex, label: this.props.label, primary: true, labelStyle: { color: styles_1.colors.white.hex }, style: {
+	                    width: 300,
+	                    height: 50,
+	                }, onClick: function () {
+	                    _this.props.toggle();
+	                } })));
+	    };
+	    return CsButton;
+	}(React.Component));
+	exports.CsButton = CsButton;
+
+
+/***/ },
+/* 527 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || (function () {
+	    var extendStatics = Object.setPrototypeOf ||
+	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+	    return function (d, b) {
+	        extendStatics(d, b);
+	        function __() { this.constructor = d; }
+	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	    };
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var React = __webpack_require__(1);
 	var colors_1 = __webpack_require__(275);
 	var getMuiTheme_1 = __webpack_require__(276);
 	var MuiThemeProvider_1 = __webpack_require__(405);
 	var flexbox_react_1 = __webpack_require__(422);
-	var SideMenu_1 = __webpack_require__(519);
-	var Header_1 = __webpack_require__(520);
+	var muiTheme = getMuiTheme_1.default({
+	    fontFamily: 'Roboto',
+	    palette: {
+	        accent1Color: colors_1.deepOrange500,
+	    },
+	});
+	var Compare = (function (_super) {
+	    __extends(Compare, _super);
+	    function Compare() {
+	        return _super !== null && _super.apply(this, arguments) || this;
+	    }
+	    Compare.prototype.render = function () {
+	        return (React.createElement(MuiThemeProvider_1.default, { muiTheme: muiTheme },
+	            React.createElement(flexbox_react_1.default, { flexDirection: "column", minHeight: "100vh" },
+	                React.createElement("span", null, "Compare"))));
+	    };
+	    return Compare;
+	}(React.Component));
+	exports.Compare = Compare;
+
+
+/***/ },
+/* 528 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || (function () {
+	    var extendStatics = Object.setPrototypeOf ||
+	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+	    return function (d, b) {
+	        extendStatics(d, b);
+	        function __() { this.constructor = d; }
+	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	    };
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var React = __webpack_require__(1);
+	var colors_1 = __webpack_require__(275);
+	var getMuiTheme_1 = __webpack_require__(276);
+	var MuiThemeProvider_1 = __webpack_require__(405);
+	var flexbox_react_1 = __webpack_require__(422);
+	var muiTheme = getMuiTheme_1.default({
+	    fontFamily: 'Roboto',
+	    palette: {
+	        accent1Color: colors_1.deepOrange500,
+	    },
+	});
+	var Data = (function (_super) {
+	    __extends(Data, _super);
+	    function Data() {
+	        return _super !== null && _super.apply(this, arguments) || this;
+	    }
+	    Data.prototype.render = function () {
+	        return (React.createElement(MuiThemeProvider_1.default, { muiTheme: muiTheme },
+	            React.createElement(flexbox_react_1.default, { flexDirection: "column", minHeight: "100vh" },
+	                React.createElement("span", null, "data"))));
+	    };
+	    return Data;
+	}(React.Component));
+	exports.Data = Data;
+
+
+/***/ },
+/* 529 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || (function () {
+	    var extendStatics = Object.setPrototypeOf ||
+	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+	    return function (d, b) {
+	        extendStatics(d, b);
+	        function __() { this.constructor = d; }
+	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	    };
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var React = __webpack_require__(1);
+	var colors_1 = __webpack_require__(275);
+	var getMuiTheme_1 = __webpack_require__(276);
+	var MuiThemeProvider_1 = __webpack_require__(405);
+	var flexbox_react_1 = __webpack_require__(422);
+	var SideMenu_1 = __webpack_require__(530);
+	var Header_1 = __webpack_require__(531);
 	var muiTheme = getMuiTheme_1.default({
 	    fontFamily: 'Roboto',
 	    palette: {
@@ -47571,7 +48832,7 @@
 
 
 /***/ },
-/* 519 */
+/* 530 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -47590,19 +48851,28 @@
 	var flexbox_react_1 = __webpack_require__(422);
 	var Menu_1 = __webpack_require__(426);
 	var MenuItem_1 = __webpack_require__(445);
+	var react_router_1 = __webpack_require__(215);
+	var styles_1 = __webpack_require__(507);
 	var SideMenu = (function (_super) {
 	    __extends(SideMenu, _super);
 	    function SideMenu() {
 	        return _super !== null && _super.apply(this, arguments) || this;
 	    }
 	    SideMenu.prototype.render = function () {
+	        var itemStyle = {
+	            borderStyle: 'solid',
+	            borderColor: styles_1.colors.black.rgba(0.2),
+	            marginBottom: 5,
+	            borderRightWidth: 3, borderLeftWidth: 0, borderTopWidth: 0, borderBottomWidth: 0
+	        };
 	        return (React.createElement(flexbox_react_1.default, { flexGrow: 1, flexDirection: "row", style: { marginLeft: 10, marginTop: 11 } },
 	            React.createElement(flexbox_react_1.default, { flexDirection: "column" },
 	                React.createElement(Menu_1.default, null,
-	                    React.createElement(MenuItem_1.default, { primaryText: "Dashboard", onTouchTap: function () { } }),
-	                    React.createElement(MenuItem_1.default, { primaryText: "Save Snapshot", onTouchTap: function () { } }),
-	                    React.createElement(MenuItem_1.default, { primaryText: "Load Snapshot", onTouchTap: function () { } }),
-	                    React.createElement(MenuItem_1.default, { primaryText: "Compare Snapshots", onTouchTap: function () { } })))));
+	                    React.createElement(MenuItem_1.default, { style: itemStyle, primaryText: "Commands", onTouchTap: function () { react_router_1.hashHistory.push('commands'); } }),
+	                    React.createElement(MenuItem_1.default, { style: itemStyle, primaryText: "Data", onTouchTap: function () { react_router_1.hashHistory.push('data'); } }),
+	                    React.createElement(MenuItem_1.default, { style: itemStyle, primaryText: "Save Snapshot", onTouchTap: function () { alert("not implemented yet"); } }),
+	                    React.createElement(MenuItem_1.default, { style: itemStyle, primaryText: "Load Snapshot", onTouchTap: function () { alert("not implemented yet"); } }),
+	                    React.createElement(MenuItem_1.default, { style: itemStyle, primaryText: "Compare Snapshots", onTouchTap: function () { react_router_1.hashHistory.push('compare'); } })))));
 	    };
 	    return SideMenu;
 	}(React.Component));
@@ -47610,7 +48880,7 @@
 
 
 /***/ },
-/* 520 */
+/* 531 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -47627,8 +48897,8 @@
 	Object.defineProperty(exports, "__esModule", { value: true });
 	var React = __webpack_require__(1);
 	var flexbox_react_1 = __webpack_require__(422);
-	var CrownstoneState_1 = __webpack_require__(508);
-	var store_1 = __webpack_require__(509);
+	var CrownstoneState_1 = __webpack_require__(510);
+	var store_1 = __webpack_require__(511);
 	var buttonStyle = { margin: 14, marginRight: 0 };
 	var Header = (function (_super) {
 	    __extends(Header, _super);

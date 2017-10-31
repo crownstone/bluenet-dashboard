@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createStore, combineReducers } from 'redux'
 import { Provider } from 'react-redux'
-import { IndexRedirect, Router, Route, browserHistory } from 'react-router'
+import { IndexRedirect, Router, Route, browserHistory, hashHistory } from 'react-router'
 import { syncHistoryWithStore, routerReducer } from 'react-router-redux'
 
 import { Pages } from './Pages'
@@ -11,19 +11,21 @@ const store = createStore(combineReducers({routing: routerReducer}));
 
 
 // Create an enhanced history that syncs navigation events with the store
-const history = syncHistoryWithStore(browserHistory, store);
+const history = syncHistoryWithStore(hashHistory, store);
 
 class App extends React.Component<{},{}> {
   render() {
     return (
       <Provider store={store}>
-        <Router history={history} >
-          <Route path={"/index.html"} component={ Pages.AppContainer }>
-            <IndexRedirect to={'/'} />
+        <Router history={hashHistory} >
+          <Route path={"/"} component={ Pages.AppContainer }>
+            <IndexRedirect to={'commands'} />
           </Route>
 
           <Route path={"/"} component={ Pages.AppContainer }>
-            <Route path={"*"} component={ Pages.Dashboard  }   />
+            <Route path={"commands"} component={ Pages.Commands  }   />
+            <Route path={"data"}     component={ Pages.Data  }       />
+            <Route path={"compare"}  component={ Pages.Compare  }    />
           </Route>
           <Route path={"*"} component={ Pages.Error404  }   />
         </Router>

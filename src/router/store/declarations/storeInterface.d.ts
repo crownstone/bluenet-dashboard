@@ -10,10 +10,18 @@ interface crownstoneState {
   simulated: boolean,
   name: string,
   macAddress: string,
-  mode: operationMode,  // "SETUP" | "NORMAL" | "DFU"
-  radioOn: boolean,
+  mode: operationMode,  // "SETUP" | "NORMAL" | "DFU" | "UNKNOWN"
+  radioEnabled: boolean,
+  advertisementsEnabled: boolean,
   meshEnabled: boolean,
-  relayOn: boolean,
+  relayEnabled: boolean,
   igbtState: number,
+
+  voltageRange: number,
+  currentRange: number,
+  differentialVoltage: boolean,
+  differentialCurrent: boolean,
+  measureReference: boolean,
+
   updatedAt: number,
 }
