@@ -36,7 +36,7 @@ class CsRange extends React.Component<
           <Flexbox flexGrow={1} />
           <span style={{fontSize:16, fontWeight:'bold'}}>{this.props.label}</span>
           <Flexbox flexGrow={1} />
-          <span style={{fontSize:14, color: colors.gray.hex}}>{"currentValue: " + (this.props.value || '?')}</span>
+          <span style={{fontSize:14, color: colors.gray.hex}}>{"currentValue: " + ((this.props.value === null || this.props.value === undefined) ? '?' : this.props.value)}</span>
           <Flexbox flexGrow={1} />
         </Flexbox>
         <RaisedButton

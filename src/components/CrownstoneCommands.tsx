@@ -26,7 +26,7 @@ class CrownstoneCommands extends React.Component<any,any> {
           <CsRange  label={"Voltage Range"} increase={() => {}} decrease={() => {}} value={state.state.voltageRange}/>
           <CsRange  label={"Current Range"} increase={() => {}} decrease={() => {}} value={state.state.currentRange}/>
         </Flexbox>
-        <span style={spanStyle}>Measurements:</span>
+        <span style={spanStyle}>Measurement Toggles:</span>
         <Flexbox alignItems="center" style={segmentStyle} >
           <CsToggle label={"Differential Voltage"}        toggle={() => {}} value={state.state.differentialVoltage}/>
           <CsToggle label={"Differential Current"}        toggle={() => {}} value={state.state.differentialCurrent}/>
