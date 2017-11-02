@@ -27,7 +27,7 @@ export const stateReducer = (state = defaultStateSettings, action : any = {}) =>
   switch (action.type) {
     case 'STATE_UPDATE':
       if (action.data) {
-        let newState = {...state};
+        let newState = {...state} as crownstoneState;
 
         newState.connected             = update(action.data.connected,             newState.connected);
         newState.simulated             = update(action.data.simulated,             newState.simulated);
@@ -46,7 +46,7 @@ export const stateReducer = (state = defaultStateSettings, action : any = {}) =>
         newState.differentialCurrent   = update(action.data.differentialCurrent,   newState.differentialCurrent);
         newState.measureReference      = update(action.data.measureReference,      newState.measureReference);
 
-        newState.updatedAt      = update(action.data.updatedAt,       newState.updatedAt);
+        newState.updatedAt             = update(action.data.updatedAt,             newState.updatedAt);
         return newState;
       }
       return state;

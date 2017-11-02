@@ -4,8 +4,7 @@ import store from "../router/store/store";
 
 class WebSocketHandlerClass {
   ws : any;
-  retryInterval;
-  retrying = false;
+  retryTimeout;
 
   constructor() {
 
@@ -15,10 +14,7 @@ class WebSocketHandlerClass {
     this.ws = new BrowserWebSocket('ws://localhost:9000');
 
     this.ws.on('open', () => {
-      if (this.retrying === true) {
-        this.retrying = false;
-        clearInterval(this.retryInterval);
-      }
+      clearTimeout(this.retryTimeout);
       store.dispatch({type:'STATE_UPDATE', data:{connected:true}})
     });
 
@@ -30,10 +26,7 @@ class WebSocketHandlerClass {
     this.ws.on('close', (e) => {
       console.log("connection lost", e);
       store.dispatch({type:'STATE_UPDATE', data:{connected:false}});
-      if (this.retrying === false) {
-        this.retrying = true;
-        this.retryInterval = setInterval(() => { this.ws.reconnect();}, 1000);
-      }
+      this.retryTimeout = setTimeout(() => { this.ws.reconnect(); }, 1000);
     });
 
 
