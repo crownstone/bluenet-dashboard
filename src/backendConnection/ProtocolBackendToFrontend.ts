@@ -27,6 +27,12 @@ class ProtocolBackendToFrontendClass {
 
     // handle any special cases.
     switch (messageObj.type) {
+      case 'getName':
+        store.dispatch({type:'STATE_UPDATE', data: {name: 'test' }}); // TODO: match messageObj.data to the value which is set to true.
+        break;
+      case 'getMacAddress':
+        store.dispatch({type:'STATE_UPDATE', data: {macAddress: '12:32:43:ff' }}); // TODO: match messageObj.data to the value which is set to true.
+        break;
       case 'setRelay':
         store.dispatch({type:'STATE_UPDATE', data: {relayEnabled: true }}); // TODO: match messageObj.data to the value which is set to true.
         break;

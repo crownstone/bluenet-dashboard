@@ -101302,11 +101302,16 @@
 	var store_1 = __webpack_require__(511);
 	var WebSocketHandlerClass = (function () {
 	    function WebSocketHandlerClass() {
+	        this.retrying = false;
 	    }
 	    WebSocketHandlerClass.prototype.start = function () {
 	        var _this = this;
 	        this.ws = new BrowserWebSocket('ws://localhost:9000');
 	        this.ws.on('open', function () {
+	            if (_this.retrying === true) {
+	                _this.retrying = false;
+	                clearInterval(_this.retryInterval);
+	            }
 	            store_1.default.dispatch({ type: 'STATE_UPDATE', data: { connected: true } });
 	        });
 	        this.ws.on('message', function (e) {
@@ -101316,6 +101321,10 @@
 	        this.ws.on('close', function (e) {
 	            console.log("connection lost", e);
 	            store_1.default.dispatch({ type: 'STATE_UPDATE', data: { connected: false } });
+	            if (_this.retrying === false) {
+	                _this.retrying = true;
+	                _this.retryInterval = setInterval(function () { _this.ws.reconnect(); }, 1000);
+	            }
 	        });
 	        EventBus_1.eventBus.on('sendOverWebSocket', function (message) {
 	            _this.ws.emit(message);
