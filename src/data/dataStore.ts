@@ -1,6 +1,8 @@
 import * as visjs from "vis"
 import {eventBus} from "../util/EventBus";
 
+const vis = (visjs as any);
+
 let testData = [
   // {x: '2014-06-11', y: 10},
   // {x: '2014-06-12', y: 25},
@@ -12,15 +14,15 @@ let testData = [
 
 
 class DataStoreClass {
-  switchState       = new visjs.DataSet(testData);
-  temperature       = new visjs.DataSet(testData);
-  voltage           = new visjs.DataSet(testData);
-  current           = new visjs.DataSet(testData);
-  advErrors         = new visjs.DataSet(testData);
-  powerUsage        = new visjs.DataSet(testData);
-  accumulatedEnergy = new visjs.DataSet(testData);
-  advertisements    = new visjs.DataSet(testData);
-  iBeacon           = new visjs.DataSet(testData);
+  switchState       = new vis.DataSet(testData);
+  temperature       = new vis.DataSet(testData);
+  voltage           = new vis.DataSet(testData);
+  current           = new vis.DataSet(testData);
+  advErrors         = new vis.DataSet(testData);
+  powerUsage        = new vis.DataSet(testData);
+  accumulatedEnergy = new vis.DataSet(testData);
+  advertisements    = new vis.DataSet(testData);
+  iBeacon           = new vis.DataSet(testData);
 
   constructor() {
 

@@ -5,7 +5,7 @@ import { colors }         from "../styles";
 import {VisGraph} from "./VisGraph";
 
 
-class BigGraph extends React.Component<any,any> {
+class BigGraph extends React.Component<{data: any, syncToken?: string, label: string} ,any> {
   render() {
     return (
       <Flexbox flexDirection={'column'} style={{marginLeft: 30, marginTop:30}}>

@@ -21888,7 +21888,7 @@
 	var react_router_1 = __webpack_require__(215);
 	var react_router_redux_1 = __webpack_require__(268);
 	var Pages_1 = __webpack_require__(273);
-	var webSockets_1 = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"../webSockets\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+	var webSockets_1 = __webpack_require__(539);
 	var store = redux_1.createStore(redux_1.combineReducers({ routing: react_router_redux_1.routerReducer }));
 	webSockets_1.WebSocketHandler.start();
 	var history = react_router_redux_1.syncHistoryWithStore(react_router_1.hashHistory, store);
@@ -48893,7 +48893,7 @@
 	        return (React.createElement(MuiThemeProvider_1.default, { muiTheme: muiTheme },
 	            React.createElement(flexbox_react_1.default, { flexDirection: "column", minHeight: "100vh" },
 	                React.createElement(flexbox_react_1.default, { flexDirection: 'row', style: { marginLeft: 30, marginTop: 30 } },
-	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.state, label: "State", callback: function (index) { _this._setData(index, 'state', 'State'); } }),
+	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.switchState, label: "State", callback: function (index) { _this._setData(index, 'state', 'State'); } }),
 	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.temperature, label: "Temperature", callback: function (index) { _this._setData(index, 'temperature', 'Temperature'); } }),
 	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.powerUsage, label: "PowerUsage", callback: function (index) { _this._setData(index, 'powerUsage', 'PowerUsage'); } }),
 	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.advertisements, label: "Advertisements", callback: function (index) { _this._setData(index, 'advertisements', 'Advertisements'); } }),
@@ -48916,28 +48916,58 @@
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	var visjs = __webpack_require__(532);
-	var EventBus_1 = __webpack_require__(527);
-	var testData = [
-	    { x: '2014-06-11', y: 10 },
-	    { x: '2014-06-12', y: 25 },
-	    { x: '2014-06-13', y: 30 },
-	    { x: '2014-06-14', y: 10 },
-	    { x: '2014-06-15', y: 15 },
-	    { x: '2014-06-16', y: 30 }
-	];
+	var vis = visjs;
+	var testData = [];
 	var DataStoreClass = (function () {
 	    function DataStoreClass() {
-	        this.state = new visjs.DataSet(testData);
-	        this.temperature = new visjs.DataSet(testData);
-	        this.voltage = new visjs.DataSet(testData);
-	        this.current = new visjs.DataSet(testData);
-	        this.advErrors = new visjs.DataSet(testData);
-	        this.powerUsage = new visjs.DataSet(testData);
-	        this.accumulatedEnergy = new visjs.DataSet(testData);
-	        this.advertisements = new visjs.DataSet(testData);
-	        this.iBeacon = new visjs.DataSet(testData);
-	        EventBus_1.eventBus.on("data", function () { });
+	        this.switchState = new vis.DataSet(testData);
+	        this.temperature = new vis.DataSet(testData);
+	        this.voltage = new vis.DataSet(testData);
+	        this.current = new vis.DataSet(testData);
+	        this.advErrors = new vis.DataSet(testData);
+	        this.powerUsage = new vis.DataSet(testData);
+	        this.accumulatedEnergy = new vis.DataSet(testData);
+	        this.advertisements = new vis.DataSet(testData);
+	        this.iBeacon = new vis.DataSet(testData);
 	    }
+	    DataStoreClass.prototype.translateIncomingData = function (message) {
+	        switch (message.type) {
+	            case 'currentData':
+	                break;
+	            case 'voltageData':
+	                break;
+	            case 'advertisementData':
+	                this._parseAdvertisement(message);
+	                break;
+	        }
+	    };
+	    DataStoreClass.prototype._parseAdvertisement = function (message) {
+	        this.switchState.add({
+	            x: message.timestamp,
+	            y: message.data.switchState
+	        });
+	        this.temperature.add({
+	            x: message.timestamp,
+	            y: message.data.temperature
+	        });
+	        this.advErrors.add({
+	            x: message.timestamp,
+	            y: message.data.errors
+	        });
+	        this.powerUsage.add({
+	            x: message.timestamp,
+	            y: message.data.powerUsage
+	        });
+	        this.accumulatedEnergy.add({
+	            x: message.timestamp,
+	            y: message.data.accumulatedEnergy
+	        });
+	        this.advertisements.add({
+	            x: message.timestamp,
+	            y: 1,
+	            group: message.data.advertisementType
+	        });
+	    };
 	    return DataStoreClass;
 	}());
 	exports.DataStore = new DataStoreClass();
@@ -100996,6 +101026,7 @@
 	var visjs = __webpack_require__(532);
 	var EventBus_1 = __webpack_require__(527);
 	var Util_1 = __webpack_require__(528);
+	var vis = visjs;
 	var VisGraph = (function (_super) {
 	    __extends(VisGraph, _super);
 	    function VisGraph() {
@@ -101005,7 +101036,7 @@
 	    }
 	    VisGraph.prototype.componentDidMount = function () {
 	        var _this = this;
-	        this.groups = new visjs.DataSet();
+	        this.groups = new vis.DataSet();
 	        this.groups.add({
 	            id: '__ungrouped__',
 	            className: 'defaultGraphStyle',
@@ -101048,7 +101079,7 @@
 	                this.graph.setItems([]);
 	            }
 	            else {
-	                this.graph = new visjs.Graph2d(this.container, [], this.groups, this.options);
+	                this.graph = new vis.Graph2d(this.container, [], this.groups, this.options);
 	            }
 	        }
 	        else {
@@ -101056,7 +101087,7 @@
 	                this.graph.setItems(props.data);
 	            }
 	            else {
-	                this.graph = new visjs.Graph2d(this.container, props.data, this.groups, this.options);
+	                this.graph = new vis.Graph2d(this.container, props.data, this.groups, this.options);
 	            }
 	        }
 	        this.graph.fit();
@@ -101258,6 +101289,116 @@
 	    return Header;
 	}(React.Component));
 	exports.Header = Header;
+
+
+/***/ },
+/* 539 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var BrowserWebSocket = __webpack_require__(540);
+	var EventBus_1 = __webpack_require__(527);
+	var store_1 = __webpack_require__(511);
+	var WebSocketHandlerClass = (function () {
+	    function WebSocketHandlerClass() {
+	    }
+	    WebSocketHandlerClass.prototype.start = function () {
+	        var _this = this;
+	        this.ws = new BrowserWebSocket('ws://localhost:9000');
+	        this.ws.on('open', function () {
+	            store_1.default.dispatch({ type: 'STATE_UPDATE', data: { connected: true } });
+	        });
+	        this.ws.on('message', function (e) {
+	            var message = e.data;
+	            EventBus_1.eventBus.emit("receivedMessage", message);
+	        });
+	        this.ws.on('close', function (e) {
+	            console.log("connection lost", e);
+	            store_1.default.dispatch({ type: 'STATE_UPDATE', data: { connected: false } });
+	        });
+	        EventBus_1.eventBus.on('sendOverWebSocket', function (message) {
+	            _this.ws.emit(message);
+	        });
+	    };
+	    return WebSocketHandlerClass;
+	}());
+	exports.WebSocketHandler = new WebSocketHandlerClass();
+
+
+/***/ },
+/* 540 */
+/***/ function(module, exports) {
+
+	function BrowserWebSocket(url, debug) {
+	    if (typeof WebSocket == 'undefined') return false;
+	    if (this === (function(){return this;})()) return new BrowserWebSocket(url, debug);
+	    this.url = url;
+	    this.ws = new WebSocket(url);
+	    this.debugging = debug;
+	    this.events = {
+	        open: [],
+	        close: [],
+	        error: [],
+	        message: []
+	    };
+	    if (debug) {
+	        this.on('open', function() {
+	            console.log('connect successful: %s ...', this.url);
+	        });
+	        this.on('close', function() {
+	            console.log('connection interrupted ...');
+	        });
+	        this.on('error', function() {
+	            console.log('something error ...');
+	        });
+	        this.on('message', function(e) {
+	            var message = e.data;
+	            console.log('received message: <-- %s ...', message);
+	        });
+	    }
+	}
+	
+	BrowserWebSocket.prototype = {
+	    on: function(event, fn) {
+	        if (! event || ! fn) throw new Error('Not enough arguments');
+	        if (! this.events.hasOwnProperty(event)) throw new Error('Only accept [open, close, error, message] event');
+	        if (! this.events[event].indexOf(fn) > -1) this.events[event] = this.events[event].concat(fn);
+	        this.ws.addEventListener(event, fn);
+	    },
+	    off: function(event, fn) {
+	        var index = this.events[event].indexOf(fn);
+	        if (index < 0) return;
+	        this.ws.removeEventListener(event, fn);
+	        this.events[event].splice(index, 1);
+	    },
+	    emit: function(message) {
+	        if (this.ws.readyState !== 1) console.log('connection is not established, please wait ...');
+	        if (this.debugging) console.log('send message: --> %s ...', message);
+	        this.ws.send(message);
+	    },
+	    close: function() {
+	        if (this.debugging) console.log('close connection ...');
+	        this.ws.close();
+	    },
+	    reconnect: function() {
+	        if (this.debugging) console.log('try to reconnect ...');
+	        var events = this.events;
+	        var ws = new WebSocket(this.url);
+	        var me = this;
+	        for (var event in events) {
+	            if (! events.hasOwnProperty(event)) continue;
+	            for (var index in events[event]) {
+	                ws.addEventListener(event, events[event][index]);
+	            }
+	        }
+	        ws.addEventListener('open', function() {
+	            me.ws = ws;
+	        });
+	    }
+	}
+	
+	module.exports = BrowserWebSocket
 
 
 /***/ }

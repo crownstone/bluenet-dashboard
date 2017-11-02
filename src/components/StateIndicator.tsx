@@ -8,7 +8,7 @@ import store from "../router/store/store";
 import {colors} from "../styles";
 
 
-class StateIndicator extends React.Component<any,any> {
+class StateIndicator extends React.Component<{keyValue?: string, colorMap?: any, numericValue?: number, value?: any, label?:string},any> {
   render() {
     let backgroundColor = colors.gray.rgba(0.5);
     let color = colors.lightGray.hex;

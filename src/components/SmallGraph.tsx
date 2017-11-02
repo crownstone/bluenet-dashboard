@@ -8,7 +8,7 @@ import IconButton from "material-ui/IconButton";
 import RaisedButton from "material-ui/RaisedButton";
 
 
-class SmallGraph extends React.Component<any,any> {
+class SmallGraph extends React.Component<{label: string, data: any, callback(number): void},any> {
   render() {
     return (
       <Flexbox flexDirection={'column'}>
@@ -26,7 +26,7 @@ class SmallGraph extends React.Component<any,any> {
   }
 }
 
-class GraphIcon extends React.Component<any,any> {
+class GraphIcon extends React.Component<{callback(): void},any> {
   render() {
     return (
       <Flexbox style={{

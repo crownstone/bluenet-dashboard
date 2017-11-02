@@ -6,8 +6,16 @@ import * as visjs from "vis"
 import {eventBus} from "../util/EventBus";
 import {Util} from "../util/Util";
 
+const vis = (visjs as any);
 
-class VisGraph extends React.Component<any,any> {
+class VisGraph extends React.Component<{
+  width: any,
+  height: any,
+  showTime?: boolean,
+  showAxis?:boolean
+  syncToken?:string,
+  data: any
+},any> {
   container;
   graph;
   groups;
@@ -22,7 +30,7 @@ class VisGraph extends React.Component<any,any> {
 
 
   componentDidMount() {
-    this.groups = new visjs.DataSet();
+    this.groups = new vis.DataSet();
     this.groups.add({
       id: '__ungrouped__',
       className:'defaultGraphStyle',
@@ -61,13 +69,13 @@ class VisGraph extends React.Component<any,any> {
     }
   }
 
-  _loadData(props) {
+  _loadData(props : any) {
     if (props.data === null) {
       if (this.graph) {
         this.graph.setItems([]);
       }
       else {
-        this.graph = new visjs.Graph2d(this.container, [], this.groups, this.options);
+        this.graph = new vis.Graph2d(this.container, [], this.groups, this.options);
       }
     }
     else {
@@ -75,7 +83,7 @@ class VisGraph extends React.Component<any,any> {
         this.graph.setItems(props.data);
       }
       else {
-        this.graph = new visjs.Graph2d(this.container, props.data, this.groups, this.options);
+        this.graph = new vis.Graph2d(this.container, props.data, this.groups, this.options);
       }
     }
     this.graph.fit()
