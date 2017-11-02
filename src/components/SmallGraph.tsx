@@ -16,9 +16,9 @@ class SmallGraph extends React.Component<any,any> {
         <Flexbox flexDirection={'row'} style={{margin: 20, marginTop:10}}>
           <VisGraph data={ this.props.data } width={150} height={100}/>
           <Flexbox flexDirection={'column'} style={{marginLeft: 10}}>
-            <GraphIcon />
-            <GraphIcon />
-            <GraphIcon />
+            <GraphIcon callback={ () => { this.props.callback(1); }}/>
+            <GraphIcon callback={ () => { this.props.callback(2); }}/>
+            <GraphIcon callback={ () => { this.props.callback(3); }}/>
           </Flexbox>
         </Flexbox>
       </Flexbox>
@@ -52,6 +52,7 @@ class GraphIcon extends React.Component<any,any> {
             minWidth:30,
             height:30,
           }}
+          onClick={() => { this.props.callback(); }}
         />
       </Flexbox>
     )

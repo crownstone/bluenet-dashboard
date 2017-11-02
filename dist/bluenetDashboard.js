@@ -21888,7 +21888,9 @@
 	var react_router_1 = __webpack_require__(215);
 	var react_router_redux_1 = __webpack_require__(268);
 	var Pages_1 = __webpack_require__(273);
+	var webSockets_1 = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"../webSockets\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
 	var store = redux_1.createStore(redux_1.combineReducers({ routing: react_router_redux_1.routerReducer }));
+	webSockets_1.WebSocketHandler.start();
 	var history = react_router_redux_1.syncHistoryWithStore(react_router_1.hashHistory, store);
 	var App = (function (_super) {
 	    __extends(App, _super);
@@ -28823,8 +28825,8 @@
 	Object.defineProperty(exports, "__esModule", { value: true });
 	var AppContainer_1 = __webpack_require__(274);
 	var Commands_1 = __webpack_require__(517);
-	var Compare_1 = __webpack_require__(527);
-	var Data_1 = __webpack_require__(528);
+	var Compare_1 = __webpack_require__(529);
+	var Data_1 = __webpack_require__(530);
 	var Error404_1 = __webpack_require__(536);
 	var Pages = {
 	    AppContainer: AppContainer_1.AppContainer,
@@ -47263,8 +47265,8 @@
 	    CrownstoneState.prototype.render = function () {
 	        var state = store_1.default.getState();
 	        return (React.createElement(flexbox_react_1.default, null,
-	            React.createElement(StateIndicator_1.StateIndicator, { label: "mode: " + state.state.mode, keyValue: state.state.mode, colorMap: { DFU: styles_1.colors.purple, SETUP: styles_1.colors.blue, NORMAL: styles_1.colors.green, UNKNOWN: styles_1.colors.lightGray } }),
 	            React.createElement(StateIndicator_1.StateIndicator, { label: state.state.connected ? "connected" : 'not connected', value: state.state.connected }),
+	            React.createElement(StateIndicator_1.StateIndicator, { label: "mode: " + state.state.mode, keyValue: state.state.mode, colorMap: { DFU: styles_1.colors.purple, SETUP: styles_1.colors.blue, NORMAL: styles_1.colors.green, UNKNOWN: styles_1.colors.lightGray } }),
 	            React.createElement(StateIndicator_1.StateIndicator, { label: state.state.radioEnabled ? "radio ON" : 'radio OFF', value: state.state.radioEnabled }),
 	            React.createElement(StateIndicator_1.StateIndicator, { label: state.state.advertisementsEnabled ? "advertising" : 'not advertising', value: state.state.advertisementsEnabled }),
 	            React.createElement(StateIndicator_1.StateIndicator, { label: state.state.meshEnabled ? "meshing" : 'not meshing', value: state.state.meshEnabled }),
@@ -47436,7 +47438,7 @@
 	                paddingLeft: 0,
 	                paddingRight: 10,
 	                position: 'relative',
-	                borderColor: styles_1.colors.black.rgba(0.07),
+	                borderColor: color,
 	                borderStyle: 'solid',
 	                borderWidth: 2,
 	                backgroundColor: backgroundColor,
@@ -47574,6 +47576,7 @@
 	var CsToggle_1 = __webpack_require__(522);
 	var CsButton_1 = __webpack_require__(526);
 	var store_1 = __webpack_require__(511);
+	var EventBus_1 = __webpack_require__(527);
 	var CrownstoneCommands = (function (_super) {
 	    __extends(CrownstoneCommands, _super);
 	    function CrownstoneCommands() {
@@ -47583,25 +47586,26 @@
 	        var state = store_1.default.getState();
 	        var spanStyle = { width: 160, marginBottom: 10, marginTop: 10, fontSize: 15, fontStyle: 'italic' };
 	        var segmentStyle = { marginBottom: 20, marginLeft: 20 };
+	        var igbtIncrement = 0.05;
 	        return (React.createElement(flexbox_react_1.default, { flexDirection: 'column', style: { marginLeft: 30, margin: 10, marginTop: 30 } },
 	            React.createElement("span", { style: spanStyle }, "Toggles:"),
 	            React.createElement(flexbox_react_1.default, { alignItems: "center", style: segmentStyle },
-	                React.createElement(CsToggle_1.CsToggle, { label: "Toggle Relay", toggle: function () { }, value: state.state.relayEnabled }),
-	                React.createElement(CsToggle_1.CsToggle, { label: "Toggle advertisements", toggle: function () { }, value: state.state.advertisementsEnabled }),
-	                React.createElement(CsToggle_1.CsToggle, { label: "Toggle Mesh", toggle: function () { }, value: state.state.meshEnabled })),
+	                React.createElement(CsToggle_1.CsToggle, { label: "Toggle Relay", toggle: function () { EventBus_1.eventBus.emit("command", { type: 'setRelay', value: !state.state.relayEnabled }); }, value: state.state.relayEnabled }),
+	                React.createElement(CsToggle_1.CsToggle, { label: "Toggle Advertisements", toggle: function () { EventBus_1.eventBus.emit("command", { type: 'setAdvertisements', value: !state.state.advertisementsEnabled }); }, value: state.state.advertisementsEnabled }),
+	                React.createElement(CsToggle_1.CsToggle, { label: "Toggle Mesh", toggle: function () { EventBus_1.eventBus.emit("command", { type: 'setMesh', value: !state.state.meshEnabled }); }, value: state.state.meshEnabled })),
 	            React.createElement("span", { style: spanStyle }, "Set Ranges:"),
 	            React.createElement(flexbox_react_1.default, { alignItems: "center", style: segmentStyle },
-	                React.createElement(CsRange_1.CsRange, { label: "IGBT", increase: function () { }, decrease: function () { }, value: state.state.igbtState }),
-	                React.createElement(CsRange_1.CsRange, { label: "Voltage Range", increase: function () { }, decrease: function () { }, value: state.state.voltageRange }),
-	                React.createElement(CsRange_1.CsRange, { label: "Current Range", increase: function () { }, decrease: function () { }, value: state.state.currentRange })),
+	                React.createElement(CsRange_1.CsRange, { label: "IGBT", increase: function () { EventBus_1.eventBus.emit("command", { type: 'setIGBT', value: Math.min(1, state.state.igbtState + igbtIncrement) }); }, decrease: function () { EventBus_1.eventBus.emit("command", { type: 'setIGBT', value: Math.max(0, state.state.igbtState - igbtIncrement) }); }, value: state.state.igbtState }),
+	                React.createElement(CsRange_1.CsRange, { label: "Voltage Range", increase: function () { alert("implement"); }, decrease: function () { alert("implement"); }, value: state.state.voltageRange }),
+	                React.createElement(CsRange_1.CsRange, { label: "Current Range", increase: function () { alert("implement"); }, decrease: function () { alert("implement"); }, value: state.state.currentRange })),
 	            React.createElement("span", { style: spanStyle }, "Measurement Toggles:"),
 	            React.createElement(flexbox_react_1.default, { alignItems: "center", style: segmentStyle },
-	                React.createElement(CsToggle_1.CsToggle, { label: "Differential Voltage", toggle: function () { }, value: state.state.differentialVoltage }),
-	                React.createElement(CsToggle_1.CsToggle, { label: "Differential Current", toggle: function () { }, value: state.state.differentialCurrent }),
-	                React.createElement(CsToggle_1.CsToggle, { label: "Measure Voltage / Reference", toggle: function () { }, value: state.state.measureReference })),
+	                React.createElement(CsToggle_1.CsToggle, { label: "Differential Voltage", toggle: function () { alert("implement"); }, value: state.state.differentialVoltage }),
+	                React.createElement(CsToggle_1.CsToggle, { label: "Differential Current", toggle: function () { alert("implement"); }, value: state.state.differentialCurrent }),
+	                React.createElement(CsToggle_1.CsToggle, { label: "Measure Voltage / Reference", toggle: function () { alert("implement"); }, value: state.state.measureReference })),
 	            React.createElement("span", { style: spanStyle }, "Commands:"),
 	            React.createElement(flexbox_react_1.default, { alignItems: "center", style: segmentStyle },
-	                React.createElement(CsButton_1.CsButton, { label: "Reset" }))));
+	                React.createElement(CsButton_1.CsButton, { label: "Reset", toggle: function () { EventBus_1.eventBus.emit("command", { type: 'reset' }); } }))));
 	    };
 	    return CrownstoneCommands;
 	}(React.Component));
@@ -48704,6 +48708,89 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var Util_1 = __webpack_require__(528);
+	var EventBusClass = (function () {
+	    function EventBusClass() {
+	        this._topics = {};
+	        this._topicIds = {};
+	    }
+	    EventBusClass.prototype.on = function (topic, callback) {
+	        var _this = this;
+	        if (!(topic)) {
+	            console.warn('Attempting to subscribe to undefined topic:', topic);
+	            return;
+	        }
+	        if (!(callback)) {
+	            console.warn('Attempting to subscribe without callback to topic:', topic);
+	            return;
+	        }
+	        if (this._topics[topic] === undefined)
+	            this._topics[topic] = [];
+	        var id = Util_1.Util.getUUID();
+	        this._topics[topic].push({ id: id, callback: callback });
+	        this._topicIds[id] = true;
+	        return function () {
+	            if (_this._topics[topic] !== undefined) {
+	                for (var i = 0; i < _this._topics[topic].length; i++) {
+	                    if (_this._topics[topic][i].id === id) {
+	                        _this._topics[topic].splice(i, 1);
+	                        break;
+	                    }
+	                }
+	                _this._topicIds[id] = undefined;
+	                delete _this._topicIds[id];
+	                if (_this._topics[topic].length === 0) {
+	                    delete _this._topics[topic];
+	                }
+	            }
+	        };
+	    };
+	    EventBusClass.prototype.emit = function (topic, data) {
+	        var _this = this;
+	        if (this._topics[topic] !== undefined) {
+	            var fireElements_1 = [];
+	            this._topics[topic].forEach(function (element) {
+	                fireElements_1.push(element);
+	            });
+	            fireElements_1.forEach(function (element) {
+	                if (_this._topicIds[element.id] === true) {
+	                    element.callback(data);
+	                }
+	            });
+	        }
+	    };
+	    return EventBusClass;
+	}());
+	exports.EventBusClass = EventBusClass;
+	exports.eventBus = new EventBusClass();
+
+
+/***/ },
+/* 528 */
+/***/ function(module, exports) {
+
+	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.Util = {
+	    getUUID: function () {
+	        var S4 = function () {
+	            return Math.floor(Math.random() * 0x10000).toString(16);
+	        };
+	        return (S4() + S4() + '-' +
+	            S4() + '-' +
+	            S4() + '-' +
+	            S4() + '-' +
+	            S4() + S4() + S4());
+	    },
+	};
+
+
+/***/ },
+/* 529 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
 	var __extends = (this && this.__extends) || (function () {
 	    var extendStatics = Object.setPrototypeOf ||
 	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -48742,7 +48829,7 @@
 
 
 /***/ },
-/* 528 */
+/* 530 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -48762,7 +48849,7 @@
 	var getMuiTheme_1 = __webpack_require__(276);
 	var MuiThemeProvider_1 = __webpack_require__(405);
 	var flexbox_react_1 = __webpack_require__(422);
-	var dataStore_1 = __webpack_require__(529);
+	var dataStore_1 = __webpack_require__(531);
 	var SmallGraph_1 = __webpack_require__(533);
 	var BigGraph_1 = __webpack_require__(535);
 	var muiTheme = getMuiTheme_1.default({
@@ -48774,22 +48861,48 @@
 	var Data = (function (_super) {
 	    __extends(Data, _super);
 	    function Data() {
-	        return _super !== null && _super.apply(this, arguments) || this;
+	        var _this = _super.call(this) || this;
+	        _this.state = {
+	            dataSource1: null,
+	            dataSource1Label: null,
+	            dataSource2: null,
+	            dataSource2Label: null,
+	            dataSource3: null,
+	            dataSource3Label: null,
+	        };
+	        return _this;
 	    }
+	    Data.prototype._getData = function (source) {
+	        if (source) {
+	            return dataStore_1.DataStore[this.state.dataSource1];
+	        }
+	        else {
+	            return null;
+	        }
+	    };
+	    Data.prototype._setData = function (index, source, label) {
+	        var dataSource = 'dataSource' + index;
+	        var stateLabel = dataSource + 'Label';
+	        var newData = {};
+	        newData[dataSource] = source;
+	        newData[stateLabel] = label;
+	        this.setState(newData);
+	    };
 	    Data.prototype.render = function () {
+	        var _this = this;
 	        return (React.createElement(MuiThemeProvider_1.default, { muiTheme: muiTheme },
 	            React.createElement(flexbox_react_1.default, { flexDirection: "column", minHeight: "100vh" },
 	                React.createElement(flexbox_react_1.default, { flexDirection: 'row', style: { marginLeft: 30, marginTop: 30 } },
-	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.state, label: "State" }),
-	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.temperature, label: "Temperature" }),
-	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.powerUsage, label: "PowerUsage" }),
-	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.advertisements, label: "Advertisements" }),
-	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.advErrors, label: "Errors" }),
-	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.voltage, label: "Voltage" }),
-	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.current, label: "Current" })),
-	                React.createElement(BigGraph_1.BigGraph, { data: dataStore_1.DataStore.state, label: "State" }),
-	                React.createElement(BigGraph_1.BigGraph, { data: dataStore_1.DataStore.state, label: "State" }),
-	                React.createElement(BigGraph_1.BigGraph, { data: dataStore_1.DataStore.state, label: "State" }))));
+	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.state, label: "State", callback: function (index) { _this._setData(index, 'state', 'State'); } }),
+	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.temperature, label: "Temperature", callback: function (index) { _this._setData(index, 'temperature', 'Temperature'); } }),
+	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.powerUsage, label: "PowerUsage", callback: function (index) { _this._setData(index, 'powerUsage', 'PowerUsage'); } }),
+	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.advertisements, label: "Advertisements", callback: function (index) { _this._setData(index, 'advertisements', 'Advertisements'); } }),
+	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.advErrors, label: "Errors", callback: function (index) { _this._setData(index, 'advErrors', 'AdvErrors'); } }),
+	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.voltage, label: "Voltage", callback: function (index) { _this._setData(index, 'voltage', 'Voltage'); } }),
+	                    React.createElement(SmallGraph_1.SmallGraph, { data: dataStore_1.DataStore.current, label: "Current", callback: function (index) { _this._setData(index, 'current', 'Current'); } })),
+	                React.createElement(BigGraph_1.BigGraph, { data: this._getData(this.state.dataSource1), label: this.state.dataSource1Label, syncToken: 'bigGraph' }),
+	                React.createElement(BigGraph_1.BigGraph, { data: this._getData(this.state.dataSource2), label: this.state.dataSource2Label, syncToken: 'bigGraph' }),
+	                React.createElement(BigGraph_1.BigGraph, { data: this._getData(this.state.dataSource3), label: this.state.dataSource3Label, syncToken: 'bigGraph' }))));
 	    };
 	    return Data;
 	}(React.Component));
@@ -48797,13 +48910,13 @@
 
 
 /***/ },
-/* 529 */
+/* 531 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
-	var visjs = __webpack_require__(530);
-	var EventBus_1 = __webpack_require__(531);
+	var visjs = __webpack_require__(532);
+	var EventBus_1 = __webpack_require__(527);
 	var testData = [
 	    { x: '2014-06-11', y: 10 },
 	    { x: '2014-06-12', y: 25 },
@@ -48831,7 +48944,7 @@
 
 
 /***/ },
-/* 530 */
+/* 532 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -100797,89 +100910,6 @@
 	;
 
 /***/ },
-/* 531 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
-	var Util_1 = __webpack_require__(532);
-	var EventBusClass = (function () {
-	    function EventBusClass() {
-	        this._topics = {};
-	        this._topicIds = {};
-	    }
-	    EventBusClass.prototype.on = function (topic, callback) {
-	        var _this = this;
-	        if (!(topic)) {
-	            console.warn('Attempting to subscribe to undefined topic:', topic);
-	            return;
-	        }
-	        if (!(callback)) {
-	            console.warn('Attempting to subscribe without callback to topic:', topic);
-	            return;
-	        }
-	        if (this._topics[topic] === undefined)
-	            this._topics[topic] = [];
-	        var id = Util_1.Util.getUUID();
-	        this._topics[topic].push({ id: id, callback: callback });
-	        this._topicIds[id] = true;
-	        return function () {
-	            if (_this._topics[topic] !== undefined) {
-	                for (var i = 0; i < _this._topics[topic].length; i++) {
-	                    if (_this._topics[topic][i].id === id) {
-	                        _this._topics[topic].splice(i, 1);
-	                        break;
-	                    }
-	                }
-	                _this._topicIds[id] = undefined;
-	                delete _this._topicIds[id];
-	                if (_this._topics[topic].length === 0) {
-	                    delete _this._topics[topic];
-	                }
-	            }
-	        };
-	    };
-	    EventBusClass.prototype.emit = function (topic, data) {
-	        var _this = this;
-	        if (this._topics[topic] !== undefined) {
-	            var fireElements_1 = [];
-	            this._topics[topic].forEach(function (element) {
-	                fireElements_1.push(element);
-	            });
-	            fireElements_1.forEach(function (element) {
-	                if (_this._topicIds[element.id] === true) {
-	                    element.callback(data);
-	                }
-	            });
-	        }
-	    };
-	    return EventBusClass;
-	}());
-	exports.EventBusClass = EventBusClass;
-	exports.eventBus = new EventBusClass();
-
-
-/***/ },
-/* 532 */
-/***/ function(module, exports) {
-
-	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
-	exports.Util = {
-	    getUUID: function () {
-	        var S4 = function () {
-	            return Math.floor(Math.random() * 0x10000).toString(16);
-	        };
-	        return (S4() + S4() + '-' +
-	            S4() + '-' +
-	            S4() + '-' +
-	            S4() + '-' +
-	            S4() + S4() + S4());
-	    },
-	};
-
-
-/***/ },
 /* 533 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -100907,14 +100937,15 @@
 	        return _super !== null && _super.apply(this, arguments) || this;
 	    }
 	    SmallGraph.prototype.render = function () {
+	        var _this = this;
 	        return (React.createElement(flexbox_react_1.default, { flexDirection: 'column' },
 	            React.createElement("span", null, this.props.label),
 	            React.createElement(flexbox_react_1.default, { flexDirection: 'row', style: { margin: 20, marginTop: 10 } },
 	                React.createElement(VisGraph_1.VisGraph, { data: this.props.data, width: 150, height: 100 }),
 	                React.createElement(flexbox_react_1.default, { flexDirection: 'column', style: { marginLeft: 10 } },
-	                    React.createElement(GraphIcon, null),
-	                    React.createElement(GraphIcon, null),
-	                    React.createElement(GraphIcon, null)))));
+	                    React.createElement(GraphIcon, { callback: function () { _this.props.callback(1); } }),
+	                    React.createElement(GraphIcon, { callback: function () { _this.props.callback(2); } }),
+	                    React.createElement(GraphIcon, { callback: function () { _this.props.callback(3); } })))));
 	    };
 	    return SmallGraph;
 	}(React.Component));
@@ -100925,6 +100956,7 @@
 	        return _super !== null && _super.apply(this, arguments) || this;
 	    }
 	    GraphIcon.prototype.render = function () {
+	        var _this = this;
 	        return (React.createElement(flexbox_react_1.default, { style: {
 	                width: 25,
 	                height: 25,
@@ -100938,7 +100970,7 @@
 	                    width: 30,
 	                    minWidth: 30,
 	                    height: 30,
-	                } })));
+	                }, onClick: function () { _this.props.callback(); } })));
 	    };
 	    return GraphIcon;
 	}(React.Component));
@@ -100961,15 +100993,20 @@
 	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
 	var React = __webpack_require__(1);
-	var visjs = __webpack_require__(530);
+	var visjs = __webpack_require__(532);
+	var EventBus_1 = __webpack_require__(527);
+	var Util_1 = __webpack_require__(528);
 	var VisGraph = (function (_super) {
 	    __extends(VisGraph, _super);
 	    function VisGraph() {
-	        return _super !== null && _super.apply(this, arguments) || this;
+	        var _this = _super.call(this) || this;
+	        _this.id = Util_1.Util.getUUID();
+	        return _this;
 	    }
 	    VisGraph.prototype.componentDidMount = function () {
-	        var groups = new visjs.DataSet();
-	        groups.add({
+	        var _this = this;
+	        this.groups = new visjs.DataSet();
+	        this.groups.add({
 	            id: '__ungrouped__',
 	            className: 'defaultGraphStyle',
 	            options: {
@@ -100979,7 +101016,7 @@
 	                }
 	            }
 	        });
-	        var options = {
+	        this.options = {
 	            width: this.props.width,
 	            height: this.props.height,
 	            dataAxis: {
@@ -100989,7 +101026,45 @@
 	            showMajorLabels: this.props.showTime || false,
 	            showCurrentTime: this.props.showTime || false,
 	        };
-	        this.graph = new visjs.Graph2d(this.container, this.props.data, groups, options);
+	        this._loadData(this.props);
+	        if (this.props.syncToken) {
+	            var topic_1 = this.props.syncToken + "_rangechanged";
+	            this.graph.on("rangechanged", function (data) {
+	                if (data.byUser) {
+	                    EventBus_1.eventBus.emit(topic_1, { start: data.start, end: data.end, id: _this.id });
+	                }
+	            });
+	            EventBus_1.eventBus.on(topic_1, function (data) {
+	                if (data.id === _this.id) {
+	                    return;
+	                }
+	                _this.graph.setWindow(data.start, data.end, { animation: false });
+	            });
+	        }
+	    };
+	    VisGraph.prototype._loadData = function (props) {
+	        if (props.data === null) {
+	            if (this.graph) {
+	                this.graph.setItems([]);
+	            }
+	            else {
+	                this.graph = new visjs.Graph2d(this.container, [], this.groups, this.options);
+	            }
+	        }
+	        else {
+	            if (this.graph) {
+	                this.graph.setItems(props.data);
+	            }
+	            else {
+	                this.graph = new visjs.Graph2d(this.container, props.data, this.groups, this.options);
+	            }
+	        }
+	        this.graph.fit();
+	    };
+	    VisGraph.prototype.componentWillReceiveProps = function (nextProps, nextState) {
+	        if (this.props.data !== nextProps.data) {
+	            this._loadData(nextProps);
+	        }
 	    };
 	    VisGraph.prototype.render = function () {
 	        var _this = this;
@@ -101026,7 +101101,7 @@
 	    }
 	    BigGraph.prototype.render = function () {
 	        return (React.createElement(flexbox_react_1.default, { flexDirection: 'column', style: { marginLeft: 30, marginTop: 30 } },
-	            React.createElement(VisGraph_1.VisGraph, { data: this.props.data, width: '100%', height: 300, showTime: true, showAxis: true })));
+	            React.createElement(VisGraph_1.VisGraph, { data: this.props.data, width: '100%', height: 300, showTime: true, showAxis: true, syncToken: this.props.syncToken })));
 	    };
 	    return BigGraph;
 	}(React.Component));

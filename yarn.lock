@@ -828,6 +828,10 @@ browser-resolve@^1.11.2:
   dependencies:
     resolve "1.1.7"
 
+browser-websocket@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/browser-websocket/-/browser-websocket-2.0.0.tgz#2f78e776725354383176107528ecb0f343d870bd"
+
 browserify-aes@0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/browserify-aes/-/browserify-aes-0.4.0.tgz#067149b668df31c4b58533e02d01e806d8608e2c"

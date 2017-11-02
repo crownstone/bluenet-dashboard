@@ -34,7 +34,7 @@ class StateIndicator extends React.Component<any,any> {
         paddingLeft:0,
         paddingRight:10,
         position:'relative',
-        borderColor: colors.black.rgba(0.07),
+        borderColor: color,
         borderStyle:'solid',
         borderWidth: 2,
         backgroundColor: backgroundColor,

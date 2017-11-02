@@ -1,5 +1,3 @@
-// todo: replace usages with references
-
 import {hex2rgb} from "../util/ColorConverters";
 
 export let colors : any = {
