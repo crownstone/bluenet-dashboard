@@ -6,6 +6,18 @@ import {StateIndicator} from "./StateIndicator";
 import {colors} from "../styles";
 
 class CrownstoneState extends React.Component<any,any> {
+  unsubscribeStoreEvent;
+
+  componentDidMount() {
+    this.unsubscribeStoreEvent = store.subscribe(() => {
+      this.forceUpdate();
+    })
+  }
+
+  componentWillUnmount() {
+    this.unsubscribeStoreEvent();
+  }
+
   render() {
     let state = store.getState();
 

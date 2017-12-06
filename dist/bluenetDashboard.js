@@ -21890,9 +21890,11 @@
 	var Pages_1 = __webpack_require__(273);
 	var webSockets_1 = __webpack_require__(539);
 	var ProtocolBackendToFrontend_1 = __webpack_require__(540);
+	var ProtocolFrontendToBackend_1 = __webpack_require__(541);
 	var store = redux_1.createStore(redux_1.combineReducers({ routing: react_router_redux_1.routerReducer }));
 	webSockets_1.WebSocketHandler.start();
 	ProtocolBackendToFrontend_1.ProtocolBackendToFrontend.subscribe();
+	ProtocolFrontendToBackend_1.ProtocolFrontendToBackend.subscribe();
 	var history = react_router_redux_1.syncHistoryWithStore(react_router_1.hashHistory, store);
 	var App = (function (_super) {
 	    __extends(App, _super);
@@ -47264,6 +47266,15 @@
 	    function CrownstoneState() {
 	        return _super !== null && _super.apply(this, arguments) || this;
 	    }
+	    CrownstoneState.prototype.componentDidMount = function () {
+	        var _this = this;
+	        this.unsubscribeStoreEvent = store_1.default.subscribe(function () {
+	            _this.forceUpdate();
+	        });
+	    };
+	    CrownstoneState.prototype.componentWillUnmount = function () {
+	        this.unsubscribeStoreEvent();
+	    };
 	    CrownstoneState.prototype.render = function () {
 	        var state = store_1.default.getState();
 	        return (React.createElement(flexbox_react_1.default, null,
@@ -101304,18 +101315,22 @@
 	var store_1 = __webpack_require__(511);
 	var WebSocketHandlerClass = (function () {
 	    function WebSocketHandlerClass() {
+	        var _this = this;
+	        this.connected = false;
+	        EventBus_1.eventBus.on('sendOverWebSocket', function (message) {
+	            if (_this.connected) {
+	                _this.ws.send(message);
+	            }
+	        });
 	    }
 	    WebSocketHandlerClass.prototype.start = function () {
-	        var _this = this;
 	        this.ws = new WebSocket('ws://localhost:9000');
 	        this.bindEvents();
-	        EventBus_1.eventBus.on('sendOverWebSocket', function (message) {
-	            _this.ws.emit(message);
-	        });
 	    };
 	    WebSocketHandlerClass.prototype.bindEvents = function () {
 	        var _this = this;
 	        this.ws.addEventListener('open', function () {
+	            _this.connected = true;
 	            clearTimeout(_this.retryTimeout);
 	            _this.pingInterval = setInterval(function () { _this.ws.send('ping'); }, 1000);
 	            store_1.default.dispatch({ type: 'STATE_UPDATE', data: { connected: true } });
@@ -101328,6 +101343,7 @@
 	            EventBus_1.eventBus.emit("receivedMessage", message);
 	        });
 	        this.ws.addEventListener('close', function (e) {
+	            _this.connected = false;
 	            store_1.default.dispatch({ type: 'STATE_UPDATE', data: { connected: false } });
 	            _this.retryTimeout = setTimeout(function () { _this.start(); }, 1000);
 	            clearInterval(_this.pingInterval);
@@ -101373,6 +101389,9 @@
 	            case 'getMacAddress':
 	                store_1.default.dispatch({ type: 'STATE_UPDATE', data: { macAddress: data.value } });
 	                break;
+	            case 'setMode':
+	                store_1.default.dispatch({ type: 'STATE_UPDATE', data: { mode: data.value } });
+	                break;
 	            case 'setRelay':
 	                store_1.default.dispatch({ type: 'STATE_UPDATE', data: { relayEnabled: data.value } });
 	                break;
@@ -101410,6 +101429,56 @@
 	    return ProtocolBackendToFrontendClass;
 	}());
 	exports.ProtocolBackendToFrontend = new ProtocolBackendToFrontendClass();
+
+
+/***/ },
+/* 541 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var EventBus_1 = __webpack_require__(527);
+	var ProtocolFrontendToBackendClass = (function () {
+	    function ProtocolFrontendToBackendClass() {
+	    }
+	    ProtocolFrontendToBackendClass.prototype.subscribe = function () {
+	        var _this = this;
+	        EventBus_1.eventBus.on("command", function (data) { _this._translate(data); });
+	    };
+	    ProtocolFrontendToBackendClass.prototype._translate = function (data) {
+	        var outgoingMessage = {
+	            timestamp: new Date().valueOf(),
+	            type: data.type,
+	            data: { value: data.value }
+	        };
+	        switch (data.type) {
+	            case 'setRelay':
+	                break;
+	            case 'setAdvertisements':
+	                break;
+	            case 'setMesh':
+	                break;
+	            case 'setIGBT':
+	                break;
+	            case 'setVoltageRange':
+	                break;
+	            case 'setCurrentRange':
+	                break;
+	            case 'setVoltageDifferential':
+	                break;
+	            case 'setCurrentDifferential':
+	                break;
+	            case 'toggleMeasurementChannel':
+	                break;
+	            case 'reset':
+	                break;
+	        }
+	        var messageString = JSON.stringify(outgoingMessage);
+	        EventBus_1.eventBus.emit("sendOverWebSocket", messageString);
+	    };
+	    return ProtocolFrontendToBackendClass;
+	}());
+	exports.ProtocolFrontendToBackend = new ProtocolFrontendToBackendClass();
 
 
 /***/ }

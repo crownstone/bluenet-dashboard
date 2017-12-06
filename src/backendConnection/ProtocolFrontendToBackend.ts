@@ -1,5 +1,3 @@
-
-
 import {eventBus} from "../util/EventBus";
 
 class ProtocolFrontendToBackendClass {
@@ -21,7 +19,7 @@ class ProtocolFrontendToBackendClass {
     let outgoingMessage = {
       timestamp: new Date().valueOf(),
       type: data.type,
-      data: { value: data.value}
+      data: { value: data.value }
     };
 
 
@@ -60,7 +58,9 @@ class ProtocolFrontendToBackendClass {
 
     }
 
-    eventBus.emit("sendOverWebSocket", outgoingMessage);
+    let messageString = JSON.stringify(outgoingMessage);
+
+    eventBus.emit("sendOverWebSocket", messageString);
   }
 }
 

@@ -44,6 +44,9 @@ class ProtocolBackendToFrontendClass {
       case 'getMacAddress':
         store.dispatch({type:'STATE_UPDATE', data: {macAddress: data.value }});
         break;
+      case 'setMode':
+        store.dispatch({type:'STATE_UPDATE', data: {mode: data.value }});
+        break;
       case 'setRelay':
         store.dispatch({type:'STATE_UPDATE', data: {relayEnabled: data.value }}); // TODO: match messageObj.data to the value which is set to true.
         break;
