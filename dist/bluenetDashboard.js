@@ -21889,8 +21889,10 @@
 	var react_router_redux_1 = __webpack_require__(268);
 	var Pages_1 = __webpack_require__(273);
 	var webSockets_1 = __webpack_require__(539);
+	var ProtocolBackendToFrontend_1 = __webpack_require__(540);
 	var store = redux_1.createStore(redux_1.combineReducers({ routing: react_router_redux_1.routerReducer }));
 	webSockets_1.WebSocketHandler.start();
+	ProtocolBackendToFrontend_1.ProtocolBackendToFrontend.subscribe();
 	var history = react_router_redux_1.syncHistoryWithStore(react_router_1.hashHistory, store);
 	var App = (function (_super) {
 	    __extends(App, _super);
@@ -48748,6 +48750,7 @@
 	    };
 	    EventBusClass.prototype.emit = function (topic, data) {
 	        var _this = this;
+	        console.log("Emitting topic", topic);
 	        if (this._topics[topic] !== undefined) {
 	            var fireElements_1 = [];
 	            this._topics[topic].forEach(function (element) {
@@ -101297,37 +101300,37 @@
 
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
-	var BrowserWebSocket = __webpack_require__(540);
 	var EventBus_1 = __webpack_require__(527);
 	var store_1 = __webpack_require__(511);
 	var WebSocketHandlerClass = (function () {
 	    function WebSocketHandlerClass() {
-	        this.retrying = false;
 	    }
 	    WebSocketHandlerClass.prototype.start = function () {
 	        var _this = this;
-	        this.ws = new BrowserWebSocket('ws://localhost:9000');
-	        this.ws.on('open', function () {
-	            if (_this.retrying === true) {
-	                _this.retrying = false;
-	                clearInterval(_this.retryInterval);
-	            }
+	        this.ws = new WebSocket('ws://localhost:9000');
+	        this.bindEvents();
+	        EventBus_1.eventBus.on('sendOverWebSocket', function (message) {
+	            _this.ws.emit(message);
+	        });
+	    };
+	    WebSocketHandlerClass.prototype.bindEvents = function () {
+	        var _this = this;
+	        this.ws.addEventListener('open', function () {
+	            clearTimeout(_this.retryTimeout);
+	            _this.pingInterval = setInterval(function () { _this.ws.send('ping'); }, 1000);
 	            store_1.default.dispatch({ type: 'STATE_UPDATE', data: { connected: true } });
 	        });
-	        this.ws.on('message', function (e) {
+	        this.ws.addEventListener('message', function (e) {
+	            if (e.data && e.data === 'pong') {
+	                return;
+	            }
 	            var message = e.data;
 	            EventBus_1.eventBus.emit("receivedMessage", message);
 	        });
-	        this.ws.on('close', function (e) {
-	            console.log("connection lost", e);
+	        this.ws.addEventListener('close', function (e) {
 	            store_1.default.dispatch({ type: 'STATE_UPDATE', data: { connected: false } });
-	            if (_this.retrying === false) {
-	                _this.retrying = true;
-	                _this.retryInterval = setInterval(function () { _this.ws.reconnect(); }, 1000);
-	            }
-	        });
-	        EventBus_1.eventBus.on('sendOverWebSocket', function (message) {
-	            _this.ws.emit(message);
+	            _this.retryTimeout = setTimeout(function () { _this.start(); }, 1000);
+	            clearInterval(_this.pingInterval);
 	        });
 	    };
 	    return WebSocketHandlerClass;
@@ -101337,77 +101340,76 @@
 
 /***/ },
 /* 540 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	function BrowserWebSocket(url, debug) {
-	    if (typeof WebSocket == 'undefined') return false;
-	    if (this === (function(){return this;})()) return new BrowserWebSocket(url, debug);
-	    this.url = url;
-	    this.ws = new WebSocket(url);
-	    this.debugging = debug;
-	    this.events = {
-	        open: [],
-	        close: [],
-	        error: [],
-	        message: []
+	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var EventBus_1 = __webpack_require__(527);
+	var store_1 = __webpack_require__(511);
+	var dataStore_1 = __webpack_require__(531);
+	var ProtocolBackendToFrontendClass = (function () {
+	    function ProtocolBackendToFrontendClass() {
+	        this.count = 0;
+	    }
+	    ProtocolBackendToFrontendClass.prototype.subscribe = function () {
+	        var _this = this;
+	        console.log("SUBBED");
+	        EventBus_1.eventBus.on("receivedMessage", function (message) { _this._translate(message); });
 	    };
-	    if (debug) {
-	        this.on('open', function() {
-	            console.log('connect successful: %s ...', this.url);
-	        });
-	        this.on('close', function() {
-	            console.log('connection interrupted ...');
-	        });
-	        this.on('error', function() {
-	            console.log('something error ...');
-	        });
-	        this.on('message', function(e) {
-	            var message = e.data;
-	            console.log('received message: <-- %s ...', message);
-	        });
-	    }
-	}
-	
-	BrowserWebSocket.prototype = {
-	    on: function(event, fn) {
-	        if (! event || ! fn) throw new Error('Not enough arguments');
-	        if (! this.events.hasOwnProperty(event)) throw new Error('Only accept [open, close, error, message] event');
-	        if (! this.events[event].indexOf(fn) > -1) this.events[event] = this.events[event].concat(fn);
-	        this.ws.addEventListener(event, fn);
-	    },
-	    off: function(event, fn) {
-	        var index = this.events[event].indexOf(fn);
-	        if (index < 0) return;
-	        this.ws.removeEventListener(event, fn);
-	        this.events[event].splice(index, 1);
-	    },
-	    emit: function(message) {
-	        if (this.ws.readyState !== 1) console.log('connection is not established, please wait ...');
-	        if (this.debugging) console.log('send message: --> %s ...', message);
-	        this.ws.send(message);
-	    },
-	    close: function() {
-	        if (this.debugging) console.log('close connection ...');
-	        this.ws.close();
-	    },
-	    reconnect: function() {
-	        if (this.debugging) console.log('try to reconnect ...');
-	        var events = this.events;
-	        var ws = new WebSocket(this.url);
-	        var me = this;
-	        for (var event in events) {
-	            if (! events.hasOwnProperty(event)) continue;
-	            for (var index in events[event]) {
-	                ws.addEventListener(event, events[event][index]);
+	    ProtocolBackendToFrontendClass.prototype._translate = function (message) {
+	        console.log("GOT MESSAGE", message, this.count++);
+	        var messageObj = message;
+	        if (typeof message === 'string') {
+	            try {
+	                messageObj = JSON.parse(message);
 	            }
+	            catch (err) { }
 	        }
-	        ws.addEventListener('open', function() {
-	            me.ws = ws;
-	        });
-	    }
-	}
-	
-	module.exports = BrowserWebSocket
+	        var data = messageObj.data;
+	        switch (messageObj.type) {
+	            case 'getName':
+	                store_1.default.dispatch({ type: 'STATE_UPDATE', data: { name: data.value } });
+	                break;
+	            case 'getMacAddress':
+	                store_1.default.dispatch({ type: 'STATE_UPDATE', data: { macAddress: data.value } });
+	                break;
+	            case 'setRelay':
+	                store_1.default.dispatch({ type: 'STATE_UPDATE', data: { relayEnabled: data.value } });
+	                break;
+	            case 'setAdvertisements':
+	                store_1.default.dispatch({ type: 'STATE_UPDATE', data: { advertisementsEnabled: data.value } });
+	                break;
+	            case 'setMesh':
+	                store_1.default.dispatch({ type: 'STATE_UPDATE', data: { meshEnabled: data.value } });
+	                break;
+	            case 'setIGBT':
+	                store_1.default.dispatch({ type: 'STATE_UPDATE', data: { igbtState: data.value } });
+	                break;
+	            case 'setVoltageRange':
+	                store_1.default.dispatch({ type: 'STATE_UPDATE', data: { voltageRange: data.value } });
+	                break;
+	            case 'setCurrentRange':
+	                store_1.default.dispatch({ type: 'STATE_UPDATE', data: { currentRange: data.value } });
+	                break;
+	            case 'setVoltageDifferential':
+	                store_1.default.dispatch({ type: 'STATE_UPDATE', data: { differentialVoltage: data.value } });
+	                break;
+	            case 'setCurrentDifferential':
+	                store_1.default.dispatch({ type: 'STATE_UPDATE', data: { differentialCurrent: data.value } });
+	                break;
+	            case 'toggleMeasurementChannel':
+	                store_1.default.dispatch({ type: 'STATE_UPDATE', data: { measureReference: data.value } });
+	                break;
+	            case 'currentData':
+	            case 'voltageData':
+	            case 'advertisementData':
+	                dataStore_1.DataStore.translateIncomingData(messageObj);
+	                break;
+	        }
+	    };
+	    return ProtocolBackendToFrontendClass;
+	}());
+	exports.ProtocolBackendToFrontend = new ProtocolBackendToFrontendClass();
 
 
 /***/ }

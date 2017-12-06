@@ -6,12 +6,17 @@ import { syncHistoryWithStore, routerReducer } from 'react-router-redux'
 
 import { Pages } from './Pages'
 import {WebSocketHandler} from "../backendConnection/webSockets";
+import {ProtocolBackendToFrontend} from "../backendConnection/ProtocolBackendToFrontend";
+import {eventBus} from "../util/EventBus";
 
 // Add the reducer to your store on the `routing` key
 const store = createStore(combineReducers({routing: routerReducer}));
 
 WebSocketHandler.start();
 
+ProtocolBackendToFrontend.subscribe();
+
+// setInterval(() => { eventBus.emit("sendOverWebSocket", 'hi')}, 1000)
 
 // Create an enhanced history that syncs navigation events with the store
 const history = syncHistoryWithStore(hashHistory, store);
