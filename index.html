@@ -46,13 +46,34 @@
             stroke-width:2px;
             stroke: rgba(0, 62, 82, 0.6);
         }
+
+        .switchStateGraphStyle {
+            fill: #ff0000;
+            fill-opacity:0;
+            stroke-width:2px;
+            stroke: rgb(255, 93, 0);
+        }
+
+        .temperatureGraphStyle {
+            fill: #003E52;
+            fill-opacity:0;
+            stroke-width:2px;
+            stroke: rgba(0, 62, 82, 0.6);
+        }
+
+        .powerUsageGraphStyle {
+            fill: #003E52;
+            fill-opacity:0;
+            stroke-width:2px;
+            stroke: rgba(0, 62, 82, 0.6);
+        }
     </style>
 	<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="./externalCSS/react-draft-wysiwyg.css" rel="stylesheet">
     <link href="./externalCSS/vis.css" rel="stylesheet">
 </head>
-<body>
+<body onKeyDown="isKeyPressed(event)" onKeyUp="onKeyUp(event)">
 <div id="app" style="height:100%;"></div>
 
 

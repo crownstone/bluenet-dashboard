@@ -25,48 +25,51 @@ class Data extends React.Component<any,any> {
     this.state = {
       dataSource1: null,
       dataSource1Label: null,
+      dataSource1min: null,
+      dataSource1max: null,
+      dataSource1timeRange: null,
       dataSource2: null,
       dataSource2Label: null,
+      dataSource2min: null,
+      dataSource2max: null,
+      dataSource2timeRange: null,
       dataSource3: null,
       dataSource3Label: null,
+      dataSource3min: null,
+      dataSource3max: null,
+      dataSource3timeRange: null,
     }
   }
 
   _getData(source) {
     if (source) {
-      return DataStore[this.state.dataSource1];
+      return DataStore[source];
     }
     else {
       return null;
     }
   }
 
-  _setData(index, source, label) {
+  _setData(index, source, label, min = -5, max = 100, timeRange?) {
     let dataSource = 'dataSource' + index;
     let stateLabel = dataSource + 'Label';
+    let minLabel = dataSource + 'min';
+    let maxLabel = dataSource + 'max';
+    let timerangeLabel = dataSource + 'timeRange';
     let newData = {};
     newData[dataSource] = source;
     newData[stateLabel] = label;
+    newData[minLabel] = min;
+    newData[maxLabel] = max;
+    newData[timerangeLabel] = timeRange;
     this.setState(newData);
   }
 
   render() {
-
     return (
       <MuiThemeProvider muiTheme={muiTheme}>
-        <Flexbox flexDirection="column" minHeight="100vh">
-          <Flexbox flexDirection={'row'} style={{marginLeft: 30, marginTop:30}}>
-            <SmallGraph data={DataStore.switchState} label={"State"} callback={(index) => { this._setData(index, 'state',          'State')}}/>
-            <SmallGraph data={DataStore.temperature}    label={"Temperature"}    callback={(index) => { this._setData(index, 'temperature',    'Temperature')}}/>
-            <SmallGraph data={DataStore.powerUsage}     label={"PowerUsage"}     callback={(index) => { this._setData(index, 'powerUsage',     'PowerUsage')}}/>
-            <SmallGraph data={DataStore.advertisements} label={"Advertisements"} callback={(index) => { this._setData(index, 'advertisements', 'Advertisements')}}/>
-            <SmallGraph data={DataStore.advErrors}      label={"Errors"}         callback={(index) => { this._setData(index, 'advErrors',      'AdvErrors')}}/>
-            <SmallGraph data={DataStore.voltage}        label={"Voltage"}        callback={(index) => { this._setData(index, 'voltage',        'Voltage')}}/>
-            <SmallGraph data={DataStore.current}        label={"Current"}        callback={(index) => { this._setData(index, 'current',        'Current')}}/>
-          </Flexbox>
-          <BigGraph data={ this._getData(this.state.dataSource1) } label={ this.state.dataSource1Label } syncToken={'bigGraph'}/>
-          <BigGraph data={ this._getData(this.state.dataSource2) } label={ this.state.dataSource2Label } syncToken={'bigGraph'}/>
-          <BigGraph data={ this._getData(this.state.dataSource3) } label={ this.state.dataSource3Label } syncToken={'bigGraph'}/>
+        <Flexbox flexDirection="column" minHeight="100vh" width="100%">
+          <BigGraph data={DataStore.switchState} dataRange={{min:-5, max:150}} timeRange={null}/>
         </Flexbox>
       </MuiThemeProvider>
     );

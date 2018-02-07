@@ -8,13 +8,12 @@ import IconButton from "material-ui/IconButton";
 import RaisedButton from "material-ui/RaisedButton";
 
 
-class SmallGraph extends React.Component<{label: string, data: any, callback(number): void},any> {
+class SmallGraph extends React.Component<{label: string, data: any, min: number, max: number, historyTrackCount?: number, range?: any, callback(index): void},any> {
   render() {
     return (
       <Flexbox flexDirection={'column'}>
         <span>{this.props.label}</span>
         <Flexbox flexDirection={'row'} style={{margin: 20, marginTop:10}}>
-          <VisGraph data={ this.props.data } width={150} height={100}/>
           <Flexbox flexDirection={'column'} style={{marginLeft: 10}}>
             <GraphIcon callback={ () => { this.props.callback(1); }}/>
             <GraphIcon callback={ () => { this.props.callback(2); }}/>

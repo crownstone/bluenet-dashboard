@@ -39,13 +39,11 @@ class AppContainer extends React.Component<any,any> {
             <Flexbox flexGrow={1} flexDirection="column" minHeight="100vh">
               <Header />
               <Flexbox flexGrow={1} flexDirection="row">
-                <Flexbox flexGrow={1} flexBasis="210px">
-                  <SideMenu />
-                </Flexbox>
-                <Flexbox flexGrow={12}>
+                <Flexbox flexGrow={1} flexBasis="10px" maxWidth="25px" />
+                <Flexbox flexGrow={22}>
                   {this.props.children}
                 </Flexbox>
-                <Flexbox flexGrow={1} flexBasis="10px" maxWidth="210px" />
+                <Flexbox flexGrow={1} flexBasis="10px" maxWidth="25px" />
               </Flexbox>
             </Flexbox>
             <Flexbox flexGrow={1} maxWidth="20px" />

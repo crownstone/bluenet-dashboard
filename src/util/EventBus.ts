@@ -54,7 +54,7 @@ export class EventBusClass {
   }
 
   emit(topic, data) {
-    console.log("Emitting topic", topic)
+    // console.log("Emitting topic", topic)
     if (this._topics[topic] !== undefined) {
       // Firing these elements can lead to a removal of a point in this._topics.
       // To ensure we do not cause a shift by deletion (thus skipping a callback) we first put them in a separate Array

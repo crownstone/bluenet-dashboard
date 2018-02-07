@@ -5,8 +5,24 @@ import { colors }         from "../styles";
 import * as visjs from "vis"
 import {eventBus} from "../util/EventBus";
 import {Util} from "../util/Util";
+import {DataStore} from "../data/dataStore";
 
 const vis = (visjs as any);
+
+window["isKeyPressed"] = function(event) {
+  if (event.shiftKey || event.ctrlKey) {
+    eventBus.emit("modifierPressed", event)
+  }
+}
+
+window["onKeyUp"] = function(event) {
+  if (event.shiftKey || event.ctrlKey) {
+    eventBus.emit("modifierPressed", event)
+  }
+  else {
+    eventBus.emit("modifierPressed", null)
+  }
+}
 
 class VisGraph extends React.Component<{
   width: any,
@@ -14,13 +30,20 @@ class VisGraph extends React.Component<{
   showTime?: boolean,
   showAxis?:boolean
   syncToken?:string,
-  data: any
+  historyTrackCount?:number,
+  data: any,
+  timeRange: any,
+  dataRange: any,
 },any> {
   container;
   graph;
-  groups;
   options;
   id;
+
+  zoomable = true;
+  dataRange = null;
+  activeModifiers : any = {};
+
 
   constructor() {
     super();
@@ -30,21 +53,13 @@ class VisGraph extends React.Component<{
 
 
   componentDidMount() {
-    this.groups = new vis.DataSet();
-    this.groups.add({
-      id: '__ungrouped__',
-      className:'defaultGraphStyle',
-      options: {
-        drawPoints: false,
-        shaded: {
-          orientation: 'bottom' // top, bottom
-        }
-      }});
-
     this.options = {
       width: this.props.width,
       height: this.props.height,
+      interpolation: false,
+      sampling: false,
       dataAxis: {
+        alignZeros: false,
         visible: this.props.showAxis || false
       },
       showMinorLabels: this.props.showTime || false,
@@ -52,7 +67,23 @@ class VisGraph extends React.Component<{
       showCurrentTime: this.props.showTime || false,
     };
 
+    this.dataRange = { min: this.props.dataRange.min, max: this.props.dataRange.max }
+
+
+    this.options['dataAxis']['left'] = {range: {min: this.dataRange.min, max: this.dataRange.max}}
+
     this._loadData(this.props);
+
+    if (this.props.historyTrackCount) {
+      this.props.data.on("add", () => {
+        if (this.props.timeRange) {
+          this.graph.setWindow(this.props.timeRange.min, this.props.timeRange.max, {animation:false})
+        }
+        else {
+          this.graph.setWindow(new Date().valueOf() - 120000, new Date().valueOf() + 20000, {animation:false})
+        }
+      });
+    }
 
     if (this.props.syncToken) {
       let topic = this.props.syncToken + "_rangechanged";
@@ -67,6 +98,50 @@ class VisGraph extends React.Component<{
         this.graph.setWindow(data.start, data.end, {animation:false})
       })
     }
+
+    this.graph.on("mousewheel", (event) => {
+      if (this.zoomable === false) {
+        if (event.deltaX === 0) {
+          return
+        }
+        let center = (this.dataRange.max + this.dataRange.min) / 2;
+        let distance = center - this.dataRange.min;
+        if (this.activeModifiers['shift'] && this.activeModifiers['ctrl']) {
+
+          let factor = 1.06
+          if (event.deltaX > 0) {
+            factor = 0.94
+          }
+          let newCenter = center * factor;
+          this.dataRange = {min: newCenter - distance, max: newCenter + distance};
+        }
+        else if (this.activeModifiers['shift']) {
+          let factor = 1.06
+          if (event.deltaX > 0) {
+            factor = 0.94
+          }
+          let newDistance = factor * distance;
+          this.dataRange = {min: center - newDistance, max: center + newDistance};
+        }
+
+        this.graph.setOptions({dataAxis: {left: {range: {min: this.dataRange.min, max: this.dataRange.max}}}})
+      }
+    })
+
+    eventBus.on('modifierPressed', (data) => {
+      this.activeModifiers = {};
+      if (data && data.shiftKey) { this.activeModifiers['shift'] = true; }
+      if (data && data.ctrlKey)  { this.activeModifiers['ctrl'] = true; }
+
+      if (data !== null && this.zoomable === true) {
+        this.graph.setOptions({zoomable:false});
+        this.zoomable = false;
+      }
+      else if (data === null && this.zoomable === false) {
+        this.graph.setOptions({zoomable:true});
+        this.zoomable = true;
+      }
+    })
   }
 
   _loadData(props : any) {
@@ -75,7 +150,7 @@ class VisGraph extends React.Component<{
         this.graph.setItems([]);
       }
       else {
-        this.graph = new vis.Graph2d(this.container, [], this.groups, this.options);
+        this.graph = new vis.Graph2d(this.container, [], DataStore.groups, this.options);
       }
     }
     else {
@@ -83,15 +158,27 @@ class VisGraph extends React.Component<{
         this.graph.setItems(props.data);
       }
       else {
-        this.graph = new vis.Graph2d(this.container, props.data, this.groups, this.options);
+        this.graph = new vis.Graph2d(this.container, props.data, DataStore.groups, this.options);
       }
     }
-    this.graph.fit()
   }
 
   componentWillReceiveProps(nextProps,nextState) {
     if (this.props.data !== nextProps.data) {
       this._loadData(nextProps);
+    }
+
+    if (nextProps.dataRange.min !== this.dataRange.min || nextProps.dataRange.max !== this.dataRange.max) {
+      this.dataRange = { min: nextProps.dataRange.min, max: nextProps.dataRange.max }
+    }
+
+    this.graph.setOptions({dataAxis: {left: {range: {min: this.dataRange.min, max: this.dataRange.max}}}})
+
+    if (this.props.timeRange) {
+      this.graph.setWindow(this.props.timeRange.min, this.props.timeRange.max, {animation:false})
+    }
+    else {
+      this.graph.setWindow(new Date().valueOf() - 120000, new Date().valueOf() + 20000, {animation:false})
     }
   }
 
