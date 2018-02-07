@@ -1,8 +1,8 @@
 import { AppContainer }   from '../containers/AppContainer'
-import { Commands }       from '../pages/Commands'
-import { Compare }       from '../pages/Compare'
-import { Data }           from '../pages/Data'
-import { Error404 }       from '../pages/Error404'
+import { Commands }       from '../Pages/Commands'
+import { Compare }       from '../Pages/Compare'
+import { Data }           from '../Pages/Data'
+import { Error404 }       from '../Pages/Error404'
 
 const Pages = {
   AppContainer,

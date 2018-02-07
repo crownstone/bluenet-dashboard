@@ -5,8 +5,8 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
 import Flexbox from 'flexbox-react';
 
-import { SideMenu } from '../PageElements/SideMenu'
-import { Header } from '../PageElements/Header'
+import { SideMenu } from '../pageElements/SideMenu'
+import { Header } from '../pageElements/Header'
 
 const muiTheme = getMuiTheme({
   fontFamily: 'Roboto',
