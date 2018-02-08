@@ -26,17 +26,6 @@ class WebSocketHandlerClass {
       clearTimeout(this.retryTimeout);
       this.pingInterval = setInterval(() => { this.ws.send('ping') }, 1000);
       store.dispatch({type:'STATE_UPDATE', data:{connected:true}})
-
-      this.ws.send(JSON.stringify({
-        type:'command',
-        command:'setVoltageLogging',
-        value: true
-      }))
-      setTimeout(() => {this.ws.send(JSON.stringify({
-        type:'command',
-        command:'setCurrentLogging',
-        value: true
-      }))}, 500);
     });
 
     this.ws.addEventListener('message', (e) => {

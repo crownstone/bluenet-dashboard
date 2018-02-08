@@ -40,7 +40,7 @@ for (let color in colors) {
     colors[color].rgb = hex2rgb(colors[color].hex);
     colors[color].rgba = (opacity) => {
       opacity = Math.min(1, opacity);
-      return 'rgba(' + colors[color].rgb.r + ',' + colors[color].rgb.g + ',' + colors[color].rgb.b + ',' + opacity + ')'
+      return 'rgba(' + colors[color].rgb.r + ',' + colors[color].rgb.g + ',' + colors[color].rgb.b + ',' + opacity + ')';
     };
   }
 }

@@ -44,10 +44,10 @@ function handleCompilerCallback (err, stats) {
     if (err || stats.compilation.errors.length > 0) {
       err = err || stats.compilation.errors[0];
       notifier.notify({
-        'title': 'Error:' + (err.file || err.module.rawRequest) + ' (l: ' + (err && err.location && err.location.line) + ', c: ' + err.location.character + ')',
+        'title': 'Error:' + (err.file || err.module.rawRequest) + ' (l: ' + (err && err.location && err.location.line) + ', c: ' + (err && err.location && err.location.character) + ')',
         'message': err.rawMessage
       });
-      console.log('Error:' + (err.file || err.module.rawRequest) + ' (l: ' + (err && err.location && err.location.line) + ', c: ' + err.location.character + ')', err.rawMessage);
+      console.log('Error:' + (err.file || err.module.rawRequest) + ' (l: ' + (err && err.location && err.location.line) + ', c: ' + (err && err.location && err.location.character) + ')', err.rawMessage);
       gutil.beep()
     }
   }

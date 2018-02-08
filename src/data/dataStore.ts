@@ -13,8 +13,6 @@ const vis = (visjs as any);
 // ];
 
 
-let THRESHOLD = 150;
-
 class DataStoreClass {
   currentBufferCounter = 0;
   currentSampleCounter = 0;
@@ -28,11 +26,14 @@ class DataStoreClass {
   voltageSampleCounter = 0;
   voltageDatasetFormat = [];
 
+  voltage           = new vis.DataSet();
+  current           = new vis.DataSet();
+
+  filteredVoltage   = new vis.DataSet();
+  filteredCurrent   = new vis.DataSet();
 
   switchState       = new vis.DataSet();
   temperature       = new vis.DataSet();
-  voltage           = new vis.DataSet();
-  current           = new vis.DataSet();
   advErrors         = new vis.DataSet();
   powerUsage        = new vis.DataSet();
   accumulatedEnergy = new vis.DataSet();
@@ -41,12 +42,21 @@ class DataStoreClass {
 
   groups            = new vis.DataSet();
 
+  bufferCollectionLength = 20;
+  bufferCount = 100
+
+  checkSync = true
+
+
+  streamOrder = {};
+
+
   constructor() {
     this.groups.add({
       id: 'switchState',
       className:'switchStateGraphStyle',
       options: {
-        drawPoints: true,
+        drawPoints: {size: 4, style:'circle'},
         shaded: {
           orientation: 'bottom' // top, bottom
         }
@@ -56,7 +66,7 @@ class DataStoreClass {
       id: 'temperature',
       className:'temperatureGraphStyle',
       options: {
-        drawPoints: true,
+        drawPoints: {size: 3, style:'circle'},
         shaded: {
           orientation: 'bottom' // top, bottom
         }
@@ -66,7 +76,7 @@ class DataStoreClass {
       id: 'powerUsage',
       className:'powerUsageGraphStyle',
       options: {
-        drawPoints: false,
+        drawPoints: {size: 3, style:'circle'},
         shaded: {
           orientation: 'bottom' // top, bottom
         }
@@ -92,11 +102,54 @@ class DataStoreClass {
   translateIncomingData(message) {
     // handle any special cases.
     let timeFactor = 5/32768
+
     switch (message.topic) {
       case 'newCurrentData':
         let newTimestamp = message.data.timestamp
         if (this.currentLastTime === null) {
           this.currentLastTime = newTimestamp;
+        }
+
+        if (this.currentBufferCounter === 0) {
+          this.streamOrder['newCurrentData'] = newTimestamp;
+        }
+
+        if (this.streamOrder['newVoltageData'] !== undefined && this.currentBufferCounter < 2 && this.checkSync === true) {
+          this.checkSync = false;
+          // start time A - start time V
+          let dt = this.streamOrder['newCurrentData'] - this.streamOrder['newVoltageData'];
+
+          // the delay between buffer sending should be about 300 ticks. If it is around 1000 ticks, we are getting them in the wrong order.
+          // First we need to know if V is before A:
+          // option 1) ...-------- A -300- V ------------1000------------ A -300- V ------...
+          // option 2) ...-------- V -300- A ------------1000------------ V -300- A ------...
+
+          // the difference can spike to 1500*this.bufferCollectionLength due to the implementation.
+          if (dt < 0 && dt > -1500*0.5*this.bufferCollectionLength) {
+            // so we receive A before V.
+            if (dt > -500) {
+              // this means the Crownstone sends A before V
+              console.log("A -> V, A -> V .......... GOOD!")
+            }
+            else {
+              // this means the Crownstone sends A before V --> we need to sync!
+              console.log("A -> V, V -> A --> SYNC!")
+              this.currentBufferCounter--;
+            }
+          }
+          else if (dt > 0 && dt < 1500*0.5*this.bufferCollectionLength) {
+            // so we receive A before V.
+            if (dt < 500) {
+              // this means the Crownstone sends V before A
+              console.log("V -> A, V -> A .......... GOOD")
+            }
+            else {
+              // this means the Crownstone sends A before V --> we need to sync!
+              console.log("V -> A, A -> V --> SYNC!")
+              this.currentBufferCounter++;
+            }
+          }
+          // console.log("aStart is this much later than vStart", dt)
         }
 
         this.currentTimeOffset = newTimestamp - this.currentLastTime;
@@ -110,10 +163,11 @@ class DataStoreClass {
         }
         this.currentBufferCounter++;
 
-        if (this.currentBufferCounter === THRESHOLD) {
+        if (this.currentBufferCounter === this.bufferCollectionLength) {
           this.current.update(this.currentDatasetFormat);
           this.currentBufferCounter = 0;
           this.currentSampleCounter = 0;
+          this.checkSync = true;
         }
 
         this.currentLastTime = message.data.timestamp
@@ -122,6 +176,10 @@ class DataStoreClass {
         newTimestamp = message.data.timestamp
         if (this.voltageLastTime === null) {
           this.voltageLastTime = newTimestamp;
+        }
+
+        if (this.voltageBufferCounter === 0) {
+          this.streamOrder['newVoltageData'] = newTimestamp;
         }
 
         this.voltageTimeOffset = newTimestamp - this.voltageLastTime;
@@ -135,7 +193,7 @@ class DataStoreClass {
         }
         this.voltageBufferCounter++;
 
-        if (this.voltageBufferCounter === THRESHOLD) {
+        if (this.voltageBufferCounter === this.bufferCollectionLength) {
           this.voltage.update(this.voltageDatasetFormat);
           this.voltageBufferCounter = 0;
           this.voltageSampleCounter = 0;
@@ -146,8 +204,20 @@ class DataStoreClass {
       case 'newServiceData':
         this._parseAdvertisement(message);
         break;
-
     }
+
+    switch (message.topic) {
+      case 'newCurrentData':
+      case 'newVoltageData':
+        if (this.streamOrder['newCurrentData'] !== undefined && this.streamOrder['newVoltageData'] !== undefined) {
+          // console.log(this.streamOrder['newCurrentData'] , this.streamOrder['newVoltageData'], this.streamOrder['newCurrentData'] - this.streamOrder['newVoltageData'])
+        }
+        break;
+      default:
+        break;
+    }
+
+
   }
 
 
@@ -184,7 +254,8 @@ class DataStoreClass {
     });
     this.powerUsage.add({
       x: time,
-      y: message.data.powerUsageReal
+      y: message.data.powerUsageReal,
+      group: 'powerUsage'
     })
     // this.accumulatedEnergy.add({
     //   x: time,

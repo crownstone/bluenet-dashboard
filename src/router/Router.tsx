@@ -29,13 +29,11 @@ class App extends React.Component<{},{}> {
       <Provider store={store}>
         <Router history={hashHistory} >
           <Route path={"/"} component={ Pages.AppContainer }>
-            <IndexRedirect to={'commands'} />
+            <IndexRedirect to={'data'} />
           </Route>
 
           <Route path={"/"} component={ Pages.AppContainer }>
-            <Route path={"commands"} component={ Pages.Commands  }   />
             <Route path={"data"}     component={ Pages.Data  }       />
-            <Route path={"compare"}  component={ Pages.Compare  }    />
           </Route>
           <Route path={"*"} component={ Pages.Error404  }   />
         </Router>
