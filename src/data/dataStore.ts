@@ -120,11 +120,9 @@ class DataStoreClass {
       }});
 
 
-    eventBus.on("PauseFeed",      () => { this.paused    = true; })
+    eventBus.on("PauseFeed",      () => { this.paused = true; })
     eventBus.on("ResumeFeed",     () => {
-      console.log("IN RESUME", this.recordedDataPresent)
       if (this.recordedDataPresent) {
-        console.log("sadasdIN RESUME", this.recordedDataPresent)
         this.current.clear();
         this.voltage.clear();
         this.recordedDataPresent = false;
@@ -149,7 +147,6 @@ class DataStoreClass {
       for (let i = this.bufferCollectionLength * this.bufferCount; i < vLength; i++) {
         this.voltageDatasetFormat.pop()
       }
-      console.log("AFTER UPDATE", this.voltageDatasetFormat, this.bufferCollectionLength * this.bufferCount, vLength, aLength)
 
       this.recordedDataPresent = true;
       this._initCyclicBufferVariables();
@@ -230,7 +227,7 @@ class DataStoreClass {
         this.currentTimeOffset = newTimestamp - this.currentLastTime;
         if (this.currentTimeOffset < 0) {
           this.currentTimeOffset += 0x00FFFFFF
-        } 
+        }
 
         for (let i = 0; i < message.data.data.length; i++) {
           this.currentDatasetFormat[this.currentSampleCounter] = {id: this.currentSampleCounter, x: this.currentSampleCounter + this.currentTimeOffset*timeFactor, y: message.data.data[i], group: 'current'}
@@ -284,9 +281,6 @@ class DataStoreClass {
         }
         else {
           if (this.voltageBufferCounter % 0.25*this.bufferCollectionLength === 0) {
-            if (this.voltageDatasetFormat.length > 3000) {
-              eventBus.emit("StopRecording")
-            }
             eventBus.emit("RecordingCycleAdded_voltage", this.voltageDatasetFormat.length);
           }
         }
