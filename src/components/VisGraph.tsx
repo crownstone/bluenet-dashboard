@@ -97,7 +97,8 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
           this.dataRange = {min: center - newDistance, max: center + newDistance};
         }
 
-        this.graph.setOptions({dataAxis: {left: {range: {min: this.dataRange.min, max: this.dataRange.max}}}})
+        this.graph.setOptions({dataAxis: {left: {range: {min: this.dataRange.min, max: this.dataRange.max}}}});
+        event.preventDefault();
       }
     })
 
@@ -118,7 +119,6 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
   }
 
   _loadData(props : any) {
-    console.log("HERE")
     if (props.data === null) {
       if (this.graph) {
         this.graph.setItems([]);
