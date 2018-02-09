@@ -16,7 +16,7 @@ class WebSocketHandlerClass {
   }
 
   start() {
-    this.ws = new WebSocket('ws://localhost:9000');
+    this.ws = new WebSocket((window as any).WEBSOCKET_IP_ADDRESS);
     this.bindEvents();
   }
 

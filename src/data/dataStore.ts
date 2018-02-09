@@ -46,14 +46,39 @@ class DataStoreClass {
   bufferCount = 100
 
   checkSync = true
-
-
   streamOrder = {};
+
+  paused = false;
+  recording = false;
+  recordedDataPresent = false;
 
 
   constructor() {
     this.groups.add({
+      id: 'current',
+      content:"Current (RAW)",
+      className:'currentGraphStyle',
+      options: {
+        drawPoints: false,
+        shaded: {
+          orientation: 'bottom' // top, bottom
+        }
+      }});
+
+    this.groups.add({
+      id: 'voltage',
+      content:"Voltage (RAW)",
+      className:'voltageGraphStyle',
+      options: {
+        drawPoints: false,
+        shaded: {
+          orientation: 'bottom' // top, bottom
+        }
+      }});
+
+    this.groups.add({
       id: 'switchState',
+      content: "SwitchState From Advertisements",
       className:'switchStateGraphStyle',
       options: {
         drawPoints: {size: 4, style:'circle'},
@@ -64,6 +89,7 @@ class DataStoreClass {
 
     this.groups.add({
       id: 'temperature',
+      content: "Chip temperature",
       className:'temperatureGraphStyle',
       options: {
         drawPoints: {size: 3, style:'circle'},
@@ -74,6 +100,7 @@ class DataStoreClass {
 
     this.groups.add({
       id: 'powerUsage',
+      content: "Power Usage (real: W)",
       className:'powerUsageGraphStyle',
       options: {
         drawPoints: {size: 3, style:'circle'},
@@ -92,14 +119,62 @@ class DataStoreClass {
         }
       }});
 
+
+    eventBus.on("PauseFeed",      () => { this.paused    = true; })
+    eventBus.on("ResumeFeed",     () => {
+      console.log("IN RESUME", this.recordedDataPresent)
+      if (this.recordedDataPresent) {
+        console.log("sadasdIN RESUME", this.recordedDataPresent)
+        this.current.clear();
+        this.voltage.clear();
+        this.recordedDataPresent = false;
+        setTimeout(() => { this.paused = false; }, 1000);
+      }
+      else {
+        this.paused = false;
+      }
+    })
+    eventBus.on("StartRecording", () => { this.recording = true; })
+    eventBus.on("StopRecording",  () => { this.recording = false;
+      this.paused = true;
+      this.current.update(this.currentDatasetFormat);
+      this.voltage.update(this.voltageDatasetFormat);
+
+      let aLength = this.currentDatasetFormat.length;
+      for (let i = this.bufferCollectionLength * this.bufferCount; i < aLength; i++) {
+        this.currentDatasetFormat.pop()
+      }
+
+      let vLength = this.voltageDatasetFormat.length;
+      for (let i = this.bufferCollectionLength * this.bufferCount; i < vLength; i++) {
+        this.voltageDatasetFormat.pop()
+      }
+      console.log("AFTER UPDATE", this.voltageDatasetFormat, this.bufferCollectionLength * this.bufferCount, vLength, aLength)
+
+      this.recordedDataPresent = true;
+      this._initCyclicBufferVariables();
+    })
   }
 
+  _initCyclicBufferVariables() {
+    this.currentBufferCounter = 0;
+    this.currentSampleCounter = 0;
+    this.currentTimeOffset = 0;
+    this.currentLastTime = null;
+
+    this.voltageLastTime = null;
+    this.voltageTimeOffset = 0;
+    this.voltageBufferCounter = 0;
+    this.voltageSampleCounter = 0;
+  }
 
   /**
    * @param message { timestamp: number, type: string, data: {} }
    * @private
    */
   translateIncomingData(message) {
+    if (this.paused) { return; }
+
     // handle any special cases.
     let timeFactor = 5/32768
 
@@ -155,19 +230,27 @@ class DataStoreClass {
         this.currentTimeOffset = newTimestamp - this.currentLastTime;
         if (this.currentTimeOffset < 0) {
           this.currentTimeOffset += 0x00FFFFFF
-        }
+        } 
 
         for (let i = 0; i < message.data.data.length; i++) {
-          this.currentDatasetFormat[this.currentSampleCounter] = {id: this.currentSampleCounter, x: this.currentSampleCounter + this.currentTimeOffset*timeFactor, y: message.data.data[i]}
+          this.currentDatasetFormat[this.currentSampleCounter] = {id: this.currentSampleCounter, x: this.currentSampleCounter + this.currentTimeOffset*timeFactor, y: message.data.data[i], group: 'current'}
           this.currentSampleCounter++;
         }
         this.currentBufferCounter++;
 
-        if (this.currentBufferCounter === this.bufferCollectionLength) {
-          this.current.update(this.currentDatasetFormat);
-          this.currentBufferCounter = 0;
-          this.currentSampleCounter = 0;
-          this.checkSync = true;
+
+        if (this.recording === false) {
+          if (this.currentBufferCounter >= this.bufferCollectionLength) {
+            this.current.update(this.currentDatasetFormat);
+            this.currentBufferCounter = 0;
+            this.currentSampleCounter = 0;
+            this.checkSync = true;
+          }
+        }
+        else {
+          if (this.currentBufferCounter % 0.25*this.bufferCollectionLength === 0) {
+            eventBus.emit("RecordingCycleAdded_current", this.currentDatasetFormat.length);
+          }
         }
 
         this.currentLastTime = message.data.timestamp
@@ -188,15 +271,24 @@ class DataStoreClass {
         }
 
         for (let i = 0; i < message.data.data.length; i++) {
-          this.voltageDatasetFormat[this.voltageSampleCounter] = {id: this.voltageSampleCounter, x: this.voltageSampleCounter + this.voltageTimeOffset*timeFactor, y: message.data.data[i]}
+          this.voltageDatasetFormat[this.voltageSampleCounter] = {id: this.voltageSampleCounter, x: this.voltageSampleCounter + this.voltageTimeOffset*timeFactor, y: message.data.data[i], group: 'voltage'}
           this.voltageSampleCounter++;
         }
         this.voltageBufferCounter++;
-
-        if (this.voltageBufferCounter === this.bufferCollectionLength) {
-          this.voltage.update(this.voltageDatasetFormat);
-          this.voltageBufferCounter = 0;
-          this.voltageSampleCounter = 0;
+        if (this.recording === false) {
+          if (this.voltageBufferCounter >= this.bufferCollectionLength) {
+            this.voltage.update(this.voltageDatasetFormat);
+            this.voltageBufferCounter = 0;
+            this.voltageSampleCounter = 0;
+          }
+        }
+        else {
+          if (this.voltageBufferCounter % 0.25*this.bufferCollectionLength === 0) {
+            if (this.voltageDatasetFormat.length > 3000) {
+              eventBus.emit("StopRecording")
+            }
+            eventBus.emit("RecordingCycleAdded_voltage", this.voltageDatasetFormat.length);
+          }
         }
 
         this.voltageLastTime = message.data.timestamp
@@ -237,6 +329,9 @@ class DataStoreClass {
    * @private
    */
   _parseAdvertisement( message ) {
+    if (this.paused) { return; }
+
+
     let time = new Date().valueOf();
     this.switchState.add({
       x: time,

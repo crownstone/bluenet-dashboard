@@ -38,7 +38,6 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
 
   constructor() {
     super();
-
     this.id = Util.getUUID()
   }
 
@@ -119,6 +118,7 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
   }
 
   _loadData(props : any) {
+    console.log("HERE")
     if (props.data === null) {
       if (this.graph) {
         this.graph.setItems([]);
