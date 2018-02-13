@@ -39841,7 +39841,7 @@
 	        }
 	        this.recordEventSubscription = EventBus_1.eventBus.on("RecordingCycleAdded_" + this.state.dataSetName, function (data) {
 	            _this.setState({ amountOfRecordedSamples: data });
-	            if (data > 30000) {
+	            if (data >= 20000) {
 	                _this._stopRecoding();
 	            }
 	        });
@@ -39989,7 +39989,7 @@
 	        else if (this.state.drawing) {
 	            title = 'Drawing Data';
 	            content = (React.createElement("div", null,
-	                React.createElement("p", null, "Data is being collected in the background. You can stop this any time to view the results."),
+	                React.createElement("p", null, "Drawing the data in the graph. This can take a while..."),
 	                React.createElement("p", null, "Amount of samples recorded: " + this.state.amountOfRecordedSamples)));
 	        }
 	        else {
@@ -43287,24 +43287,8 @@
 	        this.recording = false;
 	        this.recordingToDisk = false;
 	        this.recordedDataPresent = false;
-	        this.recordToDiskData = {
-	            switchState: [],
-	            powerUsage: [],
-	            temperature: [],
-	            voltage: [],
-	            current: [],
-	            filteredVoltage: [],
-	            filteredCurrent: [],
-	            legend: {
-	                switchState: '[t(s), value]',
-	                powerUsage: '[t(s), value (W)]',
-	                temperature: '[t(s), value (C) ]',
-	                voltage: '[t(s)*5 with t0 when recording started, value]',
-	                current: '[t(s)*5 with t0 when recording started, value]',
-	                filteredVoltage: '[t(s)*5 with t0 when recording started, value]',
-	                filteredCurrent: '[t(s)*5 with t0 when recording started, value]',
-	            }
-	        };
+	        this.recordToDiskData = {};
+	        this._clearRecordedDataBuffer();
 	        this.groups.add({
 	            id: 'current',
 	            content: "Current (RAW)",
@@ -43385,7 +43369,7 @@
 	        EventBus_1.eventBus.on("StartRecordingToDisk", function () { _this.recordingToDisk = true; });
 	        EventBus_1.eventBus.on("StopRecordingToDisk", function () {
 	            _this.recordingToDisk = false;
-	            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(_this.recordToDiskData));
+	            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(_this.recordToDiskData, undefined, 2));
 	            var dlAnchorElem = document.getElementById('downloadAnchorElem');
 	            dlAnchorElem.setAttribute("href", dataStr);
 	            var fileDate = new Date().getFullYear() + '-' + (new Date().getMonth() + 1) + '-' + new Date().getDate() + '_' + new Date().getHours() + ':' + new Date().getMinutes() + ':' + new Date().getSeconds();

@@ -291,7 +291,7 @@ class GraphSelector extends React.Component<any,any> {
 
     this.recordEventSubscription = eventBus.on("RecordingCycleAdded_" + this.state.dataSetName, (data) => {
       this.setState({amountOfRecordedSamples: data});
-      if (data > 30000) {
+      if (data >= 20000) {
         this._stopRecoding();
       }
     })
@@ -504,7 +504,7 @@ class GraphSelector extends React.Component<any,any> {
       title = 'Drawing Data';
       content = (
         <div>
-          <p>Data is being collected in the background. You can stop this any time to view the results.</p>
+          <p>Drawing the data in the graph. This can take a while...</p>
           <p>{"Amount of samples recorded: " + this.state.amountOfRecordedSamples}</p>
         </div>
       );
@@ -529,8 +529,8 @@ class GraphSelector extends React.Component<any,any> {
         open={this.state.recording || this.state.recordingRequested}
         onRequestClose={() => {}}
       >
-      {content}
-    </Dialog>
+        {content}
+      </Dialog>
     )
   }
 

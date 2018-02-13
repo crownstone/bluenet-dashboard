@@ -53,28 +53,13 @@ class DataStoreClass {
   recordingToDisk = false;
   recordedDataPresent = false;
 
-
-  recordToDiskData : any = {
-    switchState: [],
-    powerUsage: [],
-    temperature: [],
-    voltage: [],
-    current: [],
-    filteredVoltage: [],
-    filteredCurrent: [],
-    legend:{
-      switchState: '[t(s), value]',
-      powerUsage: '[t(s), value (W)]',
-      temperature: '[t(s), value (C) ]',
-      voltage: '[t(s)*5 with t0 when recording started, value]',
-      current: '[t(s)*5 with t0 when recording started, value]',
-      filteredVoltage: '[t(s)*5 with t0 when recording started, value]',
-      filteredCurrent: '[t(s)*5 with t0 when recording started, value]',
-    }
-  };
+  recordToDiskData : any = {};
 
 
   constructor() {
+    // fill the databuffer with empty data.
+    this._clearRecordedDataBuffer()
+
     this.groups.add({
       id: 'current',
       content:"Current (RAW)",
@@ -156,15 +141,16 @@ class DataStoreClass {
     eventBus.on("StartRecordingToDisk", () => { this.recordingToDisk = true; })
     eventBus.on("StopRecordingToDisk", () => {
       this.recordingToDisk = false;
-
-      var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.recordToDiskData));
+      // download data:
+      var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.recordToDiskData, undefined, 2));
       var dlAnchorElem = document.getElementById('downloadAnchorElem');
       dlAnchorElem.setAttribute("href",     dataStr     );
       let fileDate = new Date().getFullYear() + '-' + (new Date().getMonth() +1)+ '-' + new Date().getDate() + '_' + new Date().getHours() + ':' + new Date().getMinutes() + ':' + new Date().getSeconds();
       let filename = fileDate + "_DashboardData.json";
-        dlAnchorElem.setAttribute("download", filename);
+      dlAnchorElem.setAttribute("download", filename);
       dlAnchorElem.click();
 
+      // clear memory buffer
       this._clearRecordedDataBuffer();
 
     })
