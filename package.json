@@ -23,7 +23,7 @@
     "react-swipeable-views": "^0.11.1",
     "react-tap-event-plugin": "^2.0.1",
     "redux": "^3.6.0",
-    "vis": "https://github.com/AlexDM0/vis#master",
+    "vis": "https://github.com/AlexDM0/vis#4.18.1",
     "whatwg-fetch": "^2.0.1"
   },
   "devDependencies": {

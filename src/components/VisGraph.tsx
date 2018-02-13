@@ -6,12 +6,12 @@ import * as visjs from "vis"
 import {eventBus} from "../util/EventBus";
 import {Util} from "../util/Util";
 import {DataStore} from "../data/dataStore";
-
+ 
 const vis = (visjs as any);
 
 window["isKeyPressed"] = function(event) {
   if (event.shiftKey || event.ctrlKey) {
-    eventBus.emit("modifierPressed", event)
+    eventBus.emit("modifierPressed", event) 
   }
 }
 

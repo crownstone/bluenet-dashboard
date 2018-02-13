@@ -42,7 +42,7 @@ class DataStoreClass {
 
   groups            = new vis.DataSet();
 
-  bufferCollectionLength = 20;
+  bufferCollectionLength = 25;
   bufferCount = 100
 
   checkSync = true
@@ -50,7 +50,28 @@ class DataStoreClass {
 
   paused = false;
   recording = false;
+  recordingToDisk = false;
   recordedDataPresent = false;
+
+
+  recordToDiskData : any = {
+    switchState: [],
+    powerUsage: [],
+    temperature: [],
+    voltage: [],
+    current: [],
+    filteredVoltage: [],
+    filteredCurrent: [],
+    legend:{
+      switchState: '[t(s), value]',
+      powerUsage: '[t(s), value (W)]',
+      temperature: '[t(s), value (C) ]',
+      voltage: '[t(s)*5 with t0 when recording started, value]',
+      current: '[t(s)*5 with t0 when recording started, value]',
+      filteredVoltage: '[t(s)*5 with t0 when recording started, value]',
+      filteredCurrent: '[t(s)*5 with t0 when recording started, value]',
+    }
+  };
 
 
   constructor() {
@@ -132,6 +153,21 @@ class DataStoreClass {
         this.paused = false;
       }
     })
+    eventBus.on("StartRecordingToDisk", () => { this.recordingToDisk = true; })
+    eventBus.on("StopRecordingToDisk", () => {
+      this.recordingToDisk = false;
+
+      var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.recordToDiskData));
+      var dlAnchorElem = document.getElementById('downloadAnchorElem');
+      dlAnchorElem.setAttribute("href",     dataStr     );
+      let fileDate = new Date().getFullYear() + '-' + (new Date().getMonth() +1)+ '-' + new Date().getDate() + '_' + new Date().getHours() + ':' + new Date().getMinutes() + ':' + new Date().getSeconds();
+      let filename = fileDate + "_DashboardData.json";
+        dlAnchorElem.setAttribute("download", filename);
+      dlAnchorElem.click();
+
+      this._clearRecordedDataBuffer();
+
+    })
     eventBus.on("StartRecording", () => { this.recording = true; })
     eventBus.on("StopRecording",  () => { this.recording = false;
       this.paused = true;
@@ -152,6 +188,28 @@ class DataStoreClass {
       this._initCyclicBufferVariables();
     })
   }
+
+  _clearRecordedDataBuffer() {
+    this.recordToDiskData = {
+      switchState: [],
+      powerUsage: [],
+      temperature: [],
+      voltage: [],
+      current: [],
+      filteredVoltage: [],
+      filteredCurrent: [],
+      legend:{
+        switchState: '[t(s), value]',
+        powerUsage: '[t(s), value (W)]',
+        temperature: '[t(s), value (C) ]',
+        voltage: '[t(s)*5 with t0 when recording started, value]',
+        current: '[t(s)*5 with t0 when recording started, value]',
+        filteredVoltage: '[t(s)*5 with t0 when recording started, value]',
+        filteredCurrent: '[t(s)*5 with t0 when recording started, value]',
+      }
+    };
+  }
+
 
   _initCyclicBufferVariables() {
     this.currentBufferCounter = 0;
@@ -230,7 +288,11 @@ class DataStoreClass {
         }
 
         for (let i = 0; i < message.data.data.length; i++) {
-          this.currentDatasetFormat[this.currentSampleCounter] = {id: this.currentSampleCounter, x: this.currentSampleCounter + this.currentTimeOffset*timeFactor, y: message.data.data[i], group: 'current'}
+          this.currentDatasetFormat[this.currentSampleCounter] = {id: this.currentSampleCounter, x: this.currentSampleCounter + this.currentTimeOffset*timeFactor, y: message.data.data[i], group: 'current'};
+          // recording data to disk:
+          if (this.recordingToDisk) {
+            this.recordToDiskData.current.push([this.recordToDiskData.current.length + this.currentTimeOffset*timeFactor, message.data.data[i]]);
+          }
           this.currentSampleCounter++;
         }
         this.currentBufferCounter++;
@@ -245,8 +307,14 @@ class DataStoreClass {
           }
         }
         else {
-          if (this.currentBufferCounter % 0.25*this.bufferCollectionLength === 0) {
+          if (this.currentDatasetFormat.length % 200 === 0) {
             eventBus.emit("RecordingCycleAdded_current", this.currentDatasetFormat.length);
+          }
+        }
+
+        if (this.recordingToDisk) {
+          if (this.recordToDiskData.current.length % 200 === 0) {
+            eventBus.emit("RecordingCycleAdded_current", this.recordToDiskData.current.length);
           }
         }
 
@@ -269,6 +337,10 @@ class DataStoreClass {
 
         for (let i = 0; i < message.data.data.length; i++) {
           this.voltageDatasetFormat[this.voltageSampleCounter] = {id: this.voltageSampleCounter, x: this.voltageSampleCounter + this.voltageTimeOffset*timeFactor, y: message.data.data[i], group: 'voltage'}
+          // recording data to disk:
+          if (this.recordingToDisk) {
+            this.recordToDiskData.voltage.push([this.recordToDiskData.voltage.length + this.voltageTimeOffset*timeFactor, message.data.data[i]]);
+          }
           this.voltageSampleCounter++;
         }
         this.voltageBufferCounter++;
@@ -280,8 +352,14 @@ class DataStoreClass {
           }
         }
         else {
-          if (this.voltageBufferCounter % 0.25*this.bufferCollectionLength === 0) {
+          if (this.voltageDatasetFormat.length % 200 === 0) {
             eventBus.emit("RecordingCycleAdded_voltage", this.voltageDatasetFormat.length);
+          }
+        }
+
+        if (this.recordingToDisk) {
+          if (this.recordToDiskData.voltage.length % 200 === 0) {
+            eventBus.emit("RecordingCycleAdded_voltage", this.recordToDiskData.voltage.length);
           }
         }
 
@@ -291,19 +369,6 @@ class DataStoreClass {
         this._parseAdvertisement(message);
         break;
     }
-
-    switch (message.topic) {
-      case 'newCurrentData':
-      case 'newVoltageData':
-        if (this.streamOrder['newCurrentData'] !== undefined && this.streamOrder['newVoltageData'] !== undefined) {
-          // console.log(this.streamOrder['newCurrentData'] , this.streamOrder['newVoltageData'], this.streamOrder['newCurrentData'] - this.streamOrder['newVoltageData'])
-        }
-        break;
-      default:
-        break;
-    }
-
-
   }
 
 
@@ -325,8 +390,15 @@ class DataStoreClass {
   _parseAdvertisement( message ) {
     if (this.paused) { return; }
 
-
+    // recording data to disk:
     let time = new Date().valueOf();
+    if (this.recordingToDisk) {
+      this.recordToDiskData.switchState.push([time, message.data.switchState]);
+      this.recordToDiskData.temperature.push([time, message.data.temperature]);
+      this.recordToDiskData.powerUsage.push([time, message.data.powerUsageReal]);
+    }
+
+
     this.switchState.add({
       x: time,
       y: message.data.switchState,
@@ -336,10 +408,6 @@ class DataStoreClass {
       x: time,
       y: message.data.temperature,
       group: 'temperature',
-    });
-    this.advErrors.add({
-      x: time,
-      y: message.data.flagBitmask
     });
     this.powerUsage.add({
       x: time,

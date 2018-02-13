@@ -17,6 +17,7 @@ import ActionPlayForWork from "material-ui/svg-icons/action/play-for-work";
 import Dialog from 'material-ui/Dialog';
 import {eventBus} from "../util/EventBus";
 import {Util} from "../util/Util";
+import ContentSave from "material-ui/svg-icons/content/save";
 
 
 let buttonStyle = {margin:10, padding:10}
@@ -69,6 +70,8 @@ class GraphSelector extends React.Component<any,any> {
       activeLabel: null,
       paused: false,
       recording: false,
+      recordingToDisk: false,
+      recordingRequested: false,
       drawing: false,
       amountOfRecordedSamples: 0,
     }
@@ -100,6 +103,8 @@ class GraphSelector extends React.Component<any,any> {
 
     eventBus.on("PauseFeed", () =>  { this.setState({paused: true});  })
     eventBus.on("ResumeFeed", () => { this.setState({paused: false}); })
+    eventBus.on("StartRecordingToDisk", () => { this.setState({recordingToDisk: true});  })
+    eventBus.on("StopRecordingToDisk",  () => { this.setState({recordingToDisk: false}); })
   }
 
   componentWillUnmount() {
@@ -270,15 +275,40 @@ class GraphSelector extends React.Component<any,any> {
     eventBus.emit("PauseFeed", this.state.dataSetName);
   }
 
-  _startRecording() {
+  _endRecordingAndDownload() {
+    eventBus.emit("StopRecordingToDisk", this.state.dataSetName)
+    this.setState({recordingToDisk: false});
+  }
+
+  _requestRecording() {
+    this.setState({recordingRequested: true});
+  }
+
+   _startRecording() {
+    if (this.state.paused) {
+      this._resumeFeed();
+    }
+
+    this.recordEventSubscription = eventBus.on("RecordingCycleAdded_" + this.state.dataSetName, (data) => {
+      this.setState({amountOfRecordedSamples: data});
+      if (data > 30000) {
+        this._stopRecoding();
+      }
+    })
+
+    eventBus.emit("StartRecording", this.state.dataSetName)
+    this.setState({recording: true, drawing: false, recordingRequested: false});
+  }
+
+  _startRecordingToDisk() {
     if (this.state.paused) {
       this._resumeFeed();
     }
 
     this.recordEventSubscription = eventBus.on("RecordingCycleAdded_" + this.state.dataSetName, (data) => { this.setState({amountOfRecordedSamples: data})})
 
-    eventBus.emit("StartRecording", this.state.dataSetName)
-    this.setState({recording: true, drawing: false });
+    eventBus.emit("StartRecordingToDisk", this.state.dataSetName)
+    this.setState({recordingToDisk: true, drawing: false, recordingRequested: false });
   }
 
   _stopRecoding() {
@@ -308,12 +338,20 @@ class GraphSelector extends React.Component<any,any> {
             { this.state.paused === true ? <AvPlayArrow color={colors.white.hex} /> : <AvPause color={colors.white.hex} />}
               </IconButton>
           <div style={{height: 60}} />
-          <IconButton tooltip="Record" touch={true} tooltipPosition="bottom-right" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => { this._startRecording() }}>
-            <AvFiberManualRecord color={colors.menuRed.hex} />
-          </IconButton>
-          <div style={{height: 60}} />
-          <IconButton tooltip="Download" touch={true} tooltipPosition="bottom-right" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => { alert("TODO: implement") }}>
-            <ActionPlayForWork color={colors.white.hex} />
+          <IconButton tooltip="Record"
+                      touch={true}
+                      tooltipPosition="bottom-right"
+                      style={{...iconStyle, backgroundColor: this.state.recordingToDisk ? colors.green.hex : colors.darkBackground.hex}}
+                      onClick={() => {
+                        if (this.state.recordingToDisk) {
+                          this._endRecordingAndDownload()
+                        }
+                        else {
+                          this._requestRecording()
+                        }
+                      }}
+          >
+            { this.state.recordingToDisk === true ?  <ContentSave color={colors.white.hex} /> :  <AvFiberManualRecord color={colors.menuRed.hex} />}
           </IconButton>
         </Flexbox>
       </div>
@@ -422,38 +460,88 @@ class GraphSelector extends React.Component<any,any> {
     }
   }
 
-  render() {
-    let actions = []
-    if (!this.state.drawing) {
-      actions = [
+  _getDialog() {
+    let actions = [];
+    let title = "Recording in Progress...";
+    let content = (
+      <div>
+        <p>Data is being collected in the background. You can stop this any time to view the results.</p>
+        <p>{"Amount of samples recorded: " + this.state.amountOfRecordedSamples}</p>
+      </div>
+    );
+    if (this.state.recordingRequested) {
+      title = 'Record Data';
+      content = (
+        <div>
+          <p>You can start recording data by pressing the Start Button.</p>
+        </div>
+      );
+      actions.push([
+        <FlatButton
+          style={{float:'left'}}
+          label="Cancel"
+          primary={true}
+          onClick={() => { this.setState({recordingRequested: false}) }}
+        />,
+      ]);
+      actions.push([
+        <FlatButton
+          label="Record to Graph"
+          primary={true}
+          onClick={() => { this._startRecording(); }}
+        />,
+      ]);
+      actions.push([
+        <RaisedButton
+          label="Record to Disk (background)"
+          primary={true}
+          style={{paddingRight:10}}
+          onClick={() => { this._startRecordingToDisk(); }}
+        />,
+      ]);
+    }
+    else if (this.state.drawing) {
+      title = 'Drawing Data';
+      content = (
+        <div>
+          <p>Data is being collected in the background. You can stop this any time to view the results.</p>
+          <p>{"Amount of samples recorded: " + this.state.amountOfRecordedSamples}</p>
+        </div>
+      );
+    }
+    else {
+      actions.push([
         <RaisedButton
           label="Finish Recording"
           primary={true}
           onClick={() => { this._stopRecoding(); }}
         />,
-      ];
+      ]);
     }
 
+
+
+    return (
+      <Dialog
+        title={title}
+        actions={actions}
+        modal={false}
+        open={this.state.recording || this.state.recordingRequested}
+        onRequestClose={() => {}}
+      >
+      {content}
+    </Dialog>
+    )
+  }
+
+  render() {
     return (
       <Flexbox flexDirection={'column'} style={{marginLeft: 30, marginRight:30, marginTop:30}}>
+        { this.state.recordingToDisk ? <span style={{paddingLeft:30}}>{'Amount of samples recorded: ' + this.state.amountOfRecordedSamples}</span> : undefined}
         <div style={{width:'100%', height:GRAPH_HEIGHT}}>
           { this._getContent() }
         </div>
-        <Dialog
-          title={this.state.drawing ? "Recording Finished" : "Recording in Progress..."}
-          actions={actions}
-          modal={false}
-          open={this.state.recording}
-          onRequestClose={() => {}}
-        >
-          {
-            this.state.drawing ? "Drawing results..." :
-              <div>
-                <p>Data is being collected in the background. You can stop this any time to view the results.</p>
-                <p>{"Amount of samples recorded: " + this.state.amountOfRecordedSamples}</p>
-            </div>
-          }
-        </Dialog>
+        {this._getDialog()}
       </Flexbox>
     );
   }
