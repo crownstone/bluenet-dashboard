@@ -16,6 +16,7 @@ import AvPause from "material-ui/svg-icons/av/pause";
 import ActionPlayForWork from "material-ui/svg-icons/action/play-for-work";
 import Dialog from 'material-ui/Dialog';
 import {eventBus} from "../util/EventBus";
+import {Util} from "../util/Util";
 
 
 let buttonStyle = {margin:10, padding:10}
@@ -49,11 +50,13 @@ function naiveDeepCopy( original )
 class GraphSelector extends React.Component<any,any> {
   unsubscribeStoreEvent;
   baseOptions : any;
-
+  uuid: string;
   recordEventSubscription;
 
   constructor(props) {
     super(props);
+
+    this.uuid = Util.getUUID();
 
     this.state = {
       showSourceSelection: false,
@@ -186,22 +189,73 @@ class GraphSelector extends React.Component<any,any> {
     });
   }
 
+  _increaseGain(dataType) {
+    let command = null
+    switch (dataType) {
+      case 'Current':
+        command = 'increaseCurrentRange'; break;
+      case 'Voltage':
+        command = 'increaseVoltageRange'; break;
+      default:
+        console.warn("INVALID TYPE TO INCREASE GAIN", this.state.activeLabel);
+        return;
+    }
+
+    WSSendQueue.add({
+      type:'command',
+      command: command,
+    });
+  }
+
+  _decreaseGain(dataType) {
+    let command = null
+    switch (dataType) {
+      case 'Current':
+        command = 'decreaseCurrentRange'; break;
+      case 'Voltage':
+        command = 'decreaseVoltageRange'; break;
+      default:
+        console.warn("INVALID TYPE TO DECREASE GAIN", this.state.activeLabel);
+        return;
+    }
+
+    WSSendQueue.add({
+      type:'command',
+      command: command,
+    });
+  }
+
   _getRightCommandIcons() {
     let iconStyle = {borderRadius:24};
+
+    let buttons = [
+      <IconButton key={this.uuid + 'closeButton'} tooltip="Close Graph" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => { this.unload(this.state.activeLabel) }}>
+        <ContentClear color={colors.white.hex} />
+      </IconButton>
+    ];
+    switch (this.state.activeLabel) {
+      case 'Voltage':
+      case 'Current':
+      case 'FilteredVoltage':
+      case 'FilteredCurrent':
+        buttons.push(<div key={this.uuid+'spacer1'} style={{height: 60}} />);
+        buttons.push(<IconButton key={this.uuid+'_increaseGain'} tooltip="Increase Gain" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => { this._increaseGain(this.state.activeLabel) }}>
+          <ActionZoomIn color={colors.white.hex} />
+        </IconButton>);
+        buttons.push(<div key={this.uuid+'spacer2'} style={{height: 60}} />);
+        buttons.push(<IconButton key={this.uuid+'_decreaseGain'} tooltip="Decrease Gain" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => {  this._decreaseGain(this.state.activeLabel) }}>
+          <ActionZoomOut color={colors.white.hex} />
+        </IconButton>);
+        break
+      case 'switchState':
+      case 'powerUsage':
+      case 'powerUsage':
+        break;
+    }
     return (
       <div style={{position:'absolute', top:-24, right:-24, width: 48, height: GRAPH_HEIGHT}}>
         <Flexbox flexDirection={'column'}>
-          <IconButton tooltip="Close Graph" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => { this.unload(this.state.activeLabel) }}>
-            <ContentClear color={colors.white.hex} />
-          </IconButton>
-          <div style={{height: 60}} />
-          <IconButton tooltip="Increase Gain" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => {  }}>
-            <ActionZoomIn color={colors.white.hex} />
-          </IconButton>
-          <div style={{height: 60}} />
-          <IconButton tooltip="Decrease Gain" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => {  }}>
-            <ActionZoomOut color={colors.white.hex} />
-          </IconButton>
+          {buttons}
         </Flexbox>
       </div>
     )

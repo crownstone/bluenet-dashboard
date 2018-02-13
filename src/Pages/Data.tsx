@@ -14,15 +14,6 @@ const muiTheme = getMuiTheme({
 });
 
 class Data extends React.Component<any,any> {
-
-  constructor() {
-    super();
-
-    this.state = {
-
-    }
-  }
-
   render() {
     return (
       <MuiThemeProvider muiTheme={muiTheme}>

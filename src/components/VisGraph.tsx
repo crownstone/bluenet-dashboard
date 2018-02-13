@@ -73,7 +73,32 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
 
     this.graph.on("mousewheel", (event) => {
       if (this.zoomable === false) {
-        if (event.deltaX === 0) {
+
+        // deltaX and deltaY normalization from jquery.mousewheel.js
+        var deltaX = 0;
+        var deltaY = 0;
+
+        // Old school scrollwheel delta
+        if ( 'detail'      in event ) { deltaY = event.detail * -1;      }
+        if ( 'wheelDelta'  in event ) { deltaY = event.wheelDelta;       }
+        if ( 'wheelDeltaY' in event ) { deltaY = event.wheelDeltaY;      }
+        if ( 'wheelDeltaX' in event ) { deltaX = event.wheelDeltaX * -1; }
+
+        // Firefox < 17 horizontal scrolling related to DOMMouseScroll event
+        if ( 'axis' in event && event.axis === event.HORIZONTAL_AXIS ) {
+          deltaX = deltaY * -1;
+          deltaY = 0;
+        }
+
+        // New school wheel delta (wheel event)
+        if ( 'deltaY' in event ) {
+          deltaY = event.deltaY * -1;
+        }
+        if ( 'deltaX' in event ) {
+          deltaX = event.deltaX;
+        }
+
+        if (deltaX === 0) {
           return;
         }
 
@@ -81,24 +106,26 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
         let distance = center - this.dataRange.min;
         if (this.activeModifiers['shift'] && this.activeModifiers['ctrl']) {
 
-          let factor = 1.06
-          if (event.deltaX < 0) {
-            factor = 0.94
+          let factor = 0.1
+          if (deltaX < 0) {
+            factor = -0.1
           }
-          let newCenter = center * factor;
+          let newCenter = center + factor * distance;
           this.dataRange = {min: newCenter - distance, max: newCenter + distance};
         }
         else if (this.activeModifiers['shift']) {
           let factor = 1.06
-          if (event.deltaX < 0) {
+          if (deltaX < 0) {
             factor = 0.94
           }
           let newDistance = factor * distance;
           this.dataRange = {min: center - newDistance, max: center + newDistance};
         }
 
-        this.graph.setOptions({dataAxis: {left: {range: {min: this.dataRange.min, max: this.dataRange.max}}}});
         event.preventDefault();
+
+        this.graph.setOptions({dataAxis: {left: {range: {min: this.dataRange.min, max: this.dataRange.max}}}});
+
       }
     })
 
