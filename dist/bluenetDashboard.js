@@ -39794,32 +39794,24 @@
 	            command: command,
 	        });
 	    };
-	    GraphSelector.prototype._getRightCommandIcons = function () {
-	        var _this = this;
-	        var iconStyle = { borderRadius: 24 };
-	        var buttons = [
-	            React.createElement(material_ui_1.IconButton, { key: this.uuid + 'closeButton', tooltip: "Close Graph", touch: true, tooltipPosition: "bottom-left", style: __assign({}, iconStyle, { backgroundColor: styles_1.colors.darkBackground.hex }), onClick: function () { _this.unload(_this.state.activeLabel); } },
-	                React.createElement(clear_1.default, { color: styles_1.colors.white.hex }))
-	        ];
-	        switch (this.state.activeLabel) {
-	            case 'Voltage':
+	    GraphSelector.prototype._toggleDifferential = function (dataType) {
+	        var command = null;
+	        switch (dataType) {
 	            case 'Current':
-	            case 'FilteredVoltage':
-	            case 'FilteredCurrent':
-	                buttons.push(React.createElement("div", { key: this.uuid + 'spacer1', style: { height: 60 } }));
-	                buttons.push(React.createElement(material_ui_1.IconButton, { key: this.uuid + '_increaseGain', tooltip: "Increase Gain", touch: true, tooltipPosition: "bottom-left", style: __assign({}, iconStyle, { backgroundColor: styles_1.colors.darkBackground.hex }), onClick: function () { _this._increaseGain(_this.state.activeLabel); } },
-	                    React.createElement(zoom_in_1.default, { color: styles_1.colors.white.hex })));
-	                buttons.push(React.createElement("div", { key: this.uuid + 'spacer2', style: { height: 60 } }));
-	                buttons.push(React.createElement(material_ui_1.IconButton, { key: this.uuid + '_decreaseGain', tooltip: "Decrease Gain", touch: true, tooltipPosition: "bottom-left", style: __assign({}, iconStyle, { backgroundColor: styles_1.colors.darkBackground.hex }), onClick: function () { _this._decreaseGain(_this.state.activeLabel); } },
-	                    React.createElement(zoom_out_1.default, { color: styles_1.colors.white.hex })));
+	                command = 'setDifferentialModeCurrent';
 	                break;
-	            case 'switchState':
-	            case 'powerUsage':
-	            case 'powerUsage':
+	            case 'Voltage':
+	                command = 'setDifferentialModeVoltage';
 	                break;
+	            default:
+	                console.warn("INVALID TYPE TO TOGGLE DIFFERENTIAL", this.state.activeLabel);
+	                return;
 	        }
-	        return (React.createElement("div", { style: { position: 'absolute', top: -24, right: -24, width: 48, height: GRAPH_HEIGHT } },
-	            React.createElement(flexbox_react_1.default, { flexDirection: 'column' }, buttons)));
+	        WSSendQueue_1.WSSendQueue.add({
+	            type: 'command',
+	            command: command,
+	            value: false
+	        });
 	    };
 	    GraphSelector.prototype._resumeFeed = function () {
 	        EventBus_1.eventBus.emit("ResumeFeed", this.state.dataSetName);
@@ -39867,6 +39859,38 @@
 	            EventBus_1.eventBus.emit("StopRecording", _this.state.dataSetName);
 	            _this.setState({ recording: false, paused: true, drawing: false });
 	        }, 500);
+	    };
+	    GraphSelector.prototype._getRightCommandIcons = function () {
+	        var _this = this;
+	        var iconStyle = { borderRadius: 24 };
+	        var buttons = [
+	            React.createElement(material_ui_1.IconButton, { key: this.uuid + 'closeButton', tooltip: "Close Graph", touch: true, tooltipPosition: "bottom-left", style: __assign({}, iconStyle, { backgroundColor: styles_1.colors.darkBackground.hex }), onClick: function () { _this.unload(_this.state.activeLabel); } },
+	                React.createElement(clear_1.default, { color: styles_1.colors.white.hex }))
+	        ];
+	        var addSharedCyclicButtons = function () {
+	            buttons.push(React.createElement("div", { key: _this.uuid + 'spacer1', style: { height: 60 } }));
+	            buttons.push(React.createElement(material_ui_1.IconButton, { key: _this.uuid + '_increaseGain', tooltip: "Increase Gain", touch: true, tooltipPosition: "bottom-left", style: __assign({}, iconStyle, { backgroundColor: styles_1.colors.darkBackground.hex }), onClick: function () { _this._increaseGain(_this.state.activeLabel); } },
+	                React.createElement(zoom_in_1.default, { color: styles_1.colors.white.hex })));
+	            buttons.push(React.createElement("div", { key: _this.uuid + 'spacer2', style: { height: 60 } }));
+	            buttons.push(React.createElement(material_ui_1.IconButton, { key: _this.uuid + '_decreaseGain', tooltip: "Decrease Gain", touch: true, tooltipPosition: "bottom-left", style: __assign({}, iconStyle, { backgroundColor: styles_1.colors.darkBackground.hex }), onClick: function () { _this._decreaseGain(_this.state.activeLabel); } },
+	                React.createElement(zoom_out_1.default, { color: styles_1.colors.white.hex })));
+	        };
+	        switch (this.state.activeLabel) {
+	            case 'Voltage':
+	            case 'FilteredVoltage':
+	                addSharedCyclicButtons();
+	                break;
+	            case 'Current':
+	            case 'FilteredCurrent':
+	                addSharedCyclicButtons();
+	                break;
+	            case 'switchState':
+	            case 'powerUsage':
+	            case 'powerUsage':
+	                break;
+	        }
+	        return (React.createElement("div", { style: { position: 'absolute', top: -24, right: -24, width: 48, height: GRAPH_HEIGHT } },
+	            React.createElement(flexbox_react_1.default, { flexDirection: 'column' }, buttons)));
 	    };
 	    GraphSelector.prototype._getLeftCommandIcons = function () {
 	        var _this = this;
@@ -125390,6 +125414,9 @@
 	            catch (err) { }
 	        }
 	        switch (messageObj.topic) {
+	            case 'newAdcConfigPacket':
+	                console.log(JSON.stringify(messageObj));
+	                break;
 	            case 'newVoltageData':
 	            case 'newCurrentData':
 	            case 'newServiceData':

@@ -230,41 +230,25 @@ class GraphSelector extends React.Component<any,any> {
     });
   }
 
-  _getRightCommandIcons() {
-    let iconStyle = {borderRadius:24};
-
-    let buttons = [
-      <IconButton key={this.uuid + 'closeButton'} tooltip="Close Graph" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => { this.unload(this.state.activeLabel) }}>
-        <ContentClear color={colors.white.hex} />
-      </IconButton>
-    ];
-    switch (this.state.activeLabel) {
-      case 'Voltage':
+  _toggleDifferential(dataType) {
+    let command = null
+    switch (dataType) {
       case 'Current':
-      case 'FilteredVoltage':
-      case 'FilteredCurrent':
-        buttons.push(<div key={this.uuid+'spacer1'} style={{height: 60}} />);
-        buttons.push(<IconButton key={this.uuid+'_increaseGain'} tooltip="Increase Gain" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => { this._increaseGain(this.state.activeLabel) }}>
-          <ActionZoomIn color={colors.white.hex} />
-        </IconButton>);
-        buttons.push(<div key={this.uuid+'spacer2'} style={{height: 60}} />);
-        buttons.push(<IconButton key={this.uuid+'_decreaseGain'} tooltip="Decrease Gain" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => {  this._decreaseGain(this.state.activeLabel) }}>
-          <ActionZoomOut color={colors.white.hex} />
-        </IconButton>);
-        break
-      case 'switchState':
-      case 'powerUsage':
-      case 'powerUsage':
-        break;
+        command = 'setDifferentialModeCurrent'; break;
+      case 'Voltage':
+        command = 'setDifferentialModeVoltage'; break;
+      default:
+        console.warn("INVALID TYPE TO TOGGLE DIFFERENTIAL", this.state.activeLabel);
+        return;
     }
-    return (
-      <div style={{position:'absolute', top:-24, right:-24, width: 48, height: GRAPH_HEIGHT}}>
-        <Flexbox flexDirection={'column'}>
-          {buttons}
-        </Flexbox>
-      </div>
-    )
+
+    WSSendQueue.add({
+      type:'command',
+      command: command,
+      value: false
+    });
   }
+
 
 
   _resumeFeed() {
@@ -321,6 +305,53 @@ class GraphSelector extends React.Component<any,any> {
       eventBus.emit("StopRecording", this.state.dataSetName)
       this.setState({recording: false, paused: true, drawing: false});
     }, 500);
+  }
+
+  _getRightCommandIcons() {
+    let iconStyle = {borderRadius:24};
+
+    let buttons = [
+      <IconButton key={this.uuid + 'closeButton'} tooltip="Close Graph" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => { this.unload(this.state.activeLabel) }}>
+        <ContentClear color={colors.white.hex} />
+      </IconButton>
+    ];
+
+    let addSharedCyclicButtons = () => {
+      buttons.push(<div key={this.uuid+'spacer1'} style={{height: 60}} />);
+      buttons.push(<IconButton key={this.uuid+'_increaseGain'} tooltip="Increase Gain" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => { this._increaseGain(this.state.activeLabel) }}>
+        <ActionZoomIn color={colors.white.hex} />
+      </IconButton>);
+      buttons.push(<div key={this.uuid+'spacer2'} style={{height: 60}} />);
+      buttons.push(<IconButton key={this.uuid+'_decreaseGain'} tooltip="Decrease Gain" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => {  this._decreaseGain(this.state.activeLabel) }}>
+        <ActionZoomOut color={colors.white.hex} />
+      </IconButton>);
+      // buttons.push(<div key={this.uuid+'spacer3'} style={{height: 60}} />);
+      // buttons.push(<IconButton key={this.uuid+'_toggleDifferential'} tooltip="Toggle Differential" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => {  this._toggleDifferential(this.state.activeLabel) }}>
+      //   <ActionZoomOut color={colors.white.hex} />
+      // </IconButton>);
+    }
+
+    switch (this.state.activeLabel) {
+      case 'Voltage':
+      case 'FilteredVoltage':
+        addSharedCyclicButtons();
+        break;
+      case 'Current':
+      case 'FilteredCurrent':
+        addSharedCyclicButtons();
+        break
+      case 'switchState':
+      case 'powerUsage':
+      case 'powerUsage':
+        break;
+    }
+    return (
+      <div style={{position:'absolute', top:-24, right:-24, width: 48, height: GRAPH_HEIGHT}}>
+        <Flexbox flexDirection={'column'}>
+          {buttons}
+        </Flexbox>
+      </div>
+    )
   }
 
   _getLeftCommandIcons() {
