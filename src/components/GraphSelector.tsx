@@ -18,6 +18,8 @@ import Dialog from 'material-ui/Dialog';
 import {eventBus} from "../util/EventBus";
 import {Util} from "../util/Util";
 import ContentSave from "material-ui/svg-icons/content/save";
+import HardwareKeyboardArrowUp from "material-ui/svg-icons/hardware/keyboard-arrow-up";
+import HardwareKeyboardArrowDown from "material-ui/svg-icons/hardware/keyboard-arrow-down";
 
 
 let buttonStyle = {margin:10, padding:10}
@@ -52,6 +54,7 @@ class GraphSelector extends React.Component<any,any> {
   unsubscribeStoreEvent;
   baseOptions : any;
   uuid: string;
+  graphRef: any;
   recordEventSubscription;
 
   constructor(props) {
@@ -167,7 +170,7 @@ class GraphSelector extends React.Component<any,any> {
         activeOptions.showMajorLabels = true;
         stateChange = {...stateChange, dataReference: DataStore.powerUsage, realtimeData: true, dataSetName: 'powerUsage'}
         break;
-      case 'powerUsage':
+      case 'temperature':
         activeOptions.dataAxis.left.range.min = -10;
         activeOptions.dataAxis.left.range.max = 100;
         activeOptions.showMajorLabels = true;
@@ -357,8 +360,8 @@ class GraphSelector extends React.Component<any,any> {
   _getLeftCommandIcons() {
     let iconStyle = {borderRadius:24};
     return (
-      <div style={{position:'absolute', top:-24, left:-24, width: 48, height: GRAPH_HEIGHT}}>
-        <Flexbox flexDirection={'column'}>
+      <div style={{position:'absolute', top:-24, left:-24, width: 48, height: GRAPH_HEIGHT + 24}}>
+        <Flexbox flexDirection={'column'} flexGrow={1} height={'100%'}>
           <IconButton
             tooltip={this.state.paused === true ? "Resume" : "Pause"}
             touch={true}
@@ -383,6 +386,37 @@ class GraphSelector extends React.Component<any,any> {
                       }}
           >
             { this.state.recordingToDisk === true ?  <ContentSave color={colors.white.hex} /> :  <AvFiberManualRecord color={colors.menuRed.hex} />}
+          </IconButton>
+
+          <Flexbox flexGrow={1} />
+
+          <IconButton
+            touch={true}
+            style={{...iconStyle, backgroundColor: colors.green.hex}}
+            onClick={() => { this.graphRef._increaseOffset() }}
+          >
+            <HardwareKeyboardArrowUp color={colors.white.hex} />
+          </IconButton>
+          <IconButton
+            touch={true}
+            style={{...iconStyle, backgroundColor: colors.green.hex}}
+            onClick={() => { this.graphRef._decreaseOffset() }}
+          >
+            <HardwareKeyboardArrowDown color={colors.white.hex} />
+          </IconButton>
+          <IconButton
+            touch={true}
+            style={{...iconStyle, backgroundColor: colors.green.hex}}
+            onClick={() => { this.graphRef._increaseYRange() }}
+          >
+            <ActionZoomIn color={colors.white.hex} />
+          </IconButton>
+          <IconButton
+            touch={true}
+            style={{...iconStyle, backgroundColor: colors.green.hex}}
+            onClick={() => { this.graphRef._decreaseYRange() }}
+          >
+            <ActionZoomOut color={colors.white.hex} />
           </IconButton>
         </Flexbox>
       </div>
@@ -421,7 +455,7 @@ class GraphSelector extends React.Component<any,any> {
         }}
         >
           <Flexbox flexDirection={'column'}>
-            <VisGraph width={'100%'} height={GRAPH_HEIGHT} data={this.state.dataReference} options={this.state.activeOptions} realtimeData={this.state.realtimeData} />
+            <VisGraph  width={'100%'}  ref={(graphRef) => {this.graphRef = graphRef; }} height={GRAPH_HEIGHT} data={this.state.dataReference} options={this.state.activeOptions} realtimeData={this.state.realtimeData} />
           </Flexbox>
           { this._getLeftCommandIcons()  }
           { this._getRightCommandIcons() }

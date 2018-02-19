@@ -43,7 +43,6 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
 
 
   componentDidMount() {
-
     this.dataRange = {
       min: this.props.options['dataAxis']['left']['range']['min'],
       max: this.props.options['dataAxis']['left']['range']['max'],
@@ -102,29 +101,14 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
           return;
         }
 
-        let center = (this.dataRange.max + this.dataRange.min) / 2;
-        let distance = center - this.dataRange.min;
-        if (this.activeModifiers['shift'] && this.activeModifiers['ctrl']) {
-
-          let factor = 0.1
-          if (deltaX < 0) {
-            factor = -0.1
-          }
-          let newCenter = center + factor * distance;
-          this.dataRange = {min: newCenter - distance, max: newCenter + distance};
-        }
-        else if (this.activeModifiers['shift']) {
-          let factor = 1.06
-          if (deltaX < 0) {
-            factor = 0.94
-          }
-          let newDistance = factor * distance;
-          this.dataRange = {min: center - newDistance, max: center + newDistance};
-        }
-
         event.preventDefault();
 
-        this.graph.setOptions({dataAxis: {left: {range: {min: this.dataRange.min, max: this.dataRange.max}}}});
+        if (this.activeModifiers['shift'] && this.activeModifiers['ctrl']) {
+          this._changeOffset(deltaX < 0)
+        }
+        else if (this.activeModifiers['shift']) {
+          this._changeYRange(deltaX < 0)
+        }
 
       }
     })
@@ -144,6 +128,51 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
       }
     })
   }
+
+  _changeYRange(zoomIn) {
+    let center = (this.dataRange.max + this.dataRange.min) / 2;
+    let distance = center - this.dataRange.min;
+
+    let factor = 1.06;
+    if (zoomIn) {
+      factor = 0.94;
+    }
+    let newDistance = factor * distance;
+    this.dataRange = {min: center - newDistance, max: center + newDistance};
+    this.graph.setOptions({dataAxis: {left: {range: {min: this.dataRange.min, max: this.dataRange.max}}}});
+  }
+
+  _changeOffset(up) {
+    let center = (this.dataRange.max + this.dataRange.min) / 2;
+    let distance = center - this.dataRange.min;
+    let factor = 0.1
+    if (up) {
+      factor = -0.1
+    }
+    let newCenter = center + factor * distance;
+    this.dataRange = {min: newCenter - distance, max: newCenter + distance};
+    this.graph.setOptions({dataAxis: {left: {range: {min: this.dataRange.min, max: this.dataRange.max}}}});
+  }
+
+  _increaseOffset() {
+    this._changeOffset(true);
+  }
+
+  _decreaseOffset() {
+    this._changeOffset(false);
+  }
+
+  _increaseYRange() {
+    this._changeYRange(true);
+  }
+
+  _decreaseYRange() {
+    this._changeYRange(false);
+  }
+
+
+
+
 
   _loadData(props : any) {
     if (props.data === null) {

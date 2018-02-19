@@ -39612,6 +39612,8 @@
 	var EventBus_1 = __webpack_require__(471);
 	var Util_1 = __webpack_require__(472);
 	var save_1 = __webpack_require__(680);
+	var keyboard_arrow_up_1 = __webpack_require__(551);
+	var keyboard_arrow_down_1 = __webpack_require__(552);
 	var buttonStyle = { margin: 10, padding: 10 };
 	var GRAPH_HEIGHT = 500;
 	function naiveDeepCopy(original) {
@@ -39735,7 +39737,7 @@
 	                activeOptions.showMajorLabels = true;
 	                stateChange = __assign({}, stateChange, { dataReference: dataStore_1.DataStore.powerUsage, realtimeData: true, dataSetName: 'powerUsage' });
 	                break;
-	            case 'powerUsage':
+	            case 'temperature':
 	                activeOptions.dataAxis.left.range.min = -10;
 	                activeOptions.dataAxis.left.range.max = 100;
 	                activeOptions.showMajorLabels = true;
@@ -39895,8 +39897,8 @@
 	    GraphSelector.prototype._getLeftCommandIcons = function () {
 	        var _this = this;
 	        var iconStyle = { borderRadius: 24 };
-	        return (React.createElement("div", { style: { position: 'absolute', top: -24, left: -24, width: 48, height: GRAPH_HEIGHT } },
-	            React.createElement(flexbox_react_1.default, { flexDirection: 'column' },
+	        return (React.createElement("div", { style: { position: 'absolute', top: -24, left: -24, width: 48, height: GRAPH_HEIGHT + 24 } },
+	            React.createElement(flexbox_react_1.default, { flexDirection: 'column', flexGrow: 1, height: '100%' },
 	                React.createElement(material_ui_1.IconButton, { tooltip: this.state.paused === true ? "Resume" : "Pause", touch: true, tooltipPosition: "bottom-right", style: __assign({}, iconStyle, { backgroundColor: styles_1.colors.darkBackground.hex }), onClick: function () { _this.state.paused === true ? _this._resumeFeed() : _this._pauseFeed(); } }, this.state.paused === true ? React.createElement(play_arrow_1.default, { color: styles_1.colors.white.hex }) : React.createElement(pause_1.default, { color: styles_1.colors.white.hex })),
 	                React.createElement("div", { style: { height: 60 } }),
 	                React.createElement(material_ui_1.IconButton, { tooltip: "Record", touch: true, tooltipPosition: "bottom-right", style: __assign({}, iconStyle, { backgroundColor: this.state.recordingToDisk ? styles_1.colors.green.hex : styles_1.colors.darkBackground.hex }), onClick: function () {
@@ -39906,7 +39908,16 @@
 	                        else {
 	                            _this._requestRecording();
 	                        }
-	                    } }, this.state.recordingToDisk === true ? React.createElement(save_1.default, { color: styles_1.colors.white.hex }) : React.createElement(fiber_manual_record_1.default, { color: styles_1.colors.menuRed.hex })))));
+	                    } }, this.state.recordingToDisk === true ? React.createElement(save_1.default, { color: styles_1.colors.white.hex }) : React.createElement(fiber_manual_record_1.default, { color: styles_1.colors.menuRed.hex })),
+	                React.createElement(flexbox_react_1.default, { flexGrow: 1 }),
+	                React.createElement(material_ui_1.IconButton, { touch: true, style: __assign({}, iconStyle, { backgroundColor: styles_1.colors.green.hex }), onClick: function () { _this.graphRef._increaseOffset(); } },
+	                    React.createElement(keyboard_arrow_up_1.default, { color: styles_1.colors.white.hex })),
+	                React.createElement(material_ui_1.IconButton, { touch: true, style: __assign({}, iconStyle, { backgroundColor: styles_1.colors.green.hex }), onClick: function () { _this.graphRef._decreaseOffset(); } },
+	                    React.createElement(keyboard_arrow_down_1.default, { color: styles_1.colors.white.hex })),
+	                React.createElement(material_ui_1.IconButton, { touch: true, style: __assign({}, iconStyle, { backgroundColor: styles_1.colors.green.hex }), onClick: function () { _this.graphRef._increaseYRange(); } },
+	                    React.createElement(zoom_in_1.default, { color: styles_1.colors.white.hex })),
+	                React.createElement(material_ui_1.IconButton, { touch: true, style: __assign({}, iconStyle, { backgroundColor: styles_1.colors.green.hex }), onClick: function () { _this.graphRef._decreaseYRange(); } },
+	                    React.createElement(zoom_out_1.default, { color: styles_1.colors.white.hex })))));
 	    };
 	    GraphSelector.prototype._getContent = function () {
 	        var _this = this;
@@ -39935,7 +39946,7 @@
 	                    height: GRAPH_HEIGHT,
 	                } },
 	                React.createElement(flexbox_react_1.default, { flexDirection: 'column' },
-	                    React.createElement(VisGraph_1.VisGraph, { width: '100%', height: GRAPH_HEIGHT, data: this.state.dataReference, options: this.state.activeOptions, realtimeData: this.state.realtimeData })),
+	                    React.createElement(VisGraph_1.VisGraph, { width: '100%', ref: function (graphRef) { _this.graphRef = graphRef; }, height: GRAPH_HEIGHT, data: this.state.dataReference, options: this.state.activeOptions, realtimeData: this.state.realtimeData })),
 	                this._getLeftCommandIcons(),
 	                this._getRightCommandIcons()));
 	        }
@@ -95941,26 +95952,13 @@
 	                if (deltaX === 0) {
 	                    return;
 	                }
-	                var center = (_this.dataRange.max + _this.dataRange.min) / 2;
-	                var distance = center - _this.dataRange.min;
+	                event.preventDefault();
 	                if (_this.activeModifiers['shift'] && _this.activeModifiers['ctrl']) {
-	                    var factor = 0.1;
-	                    if (deltaX < 0) {
-	                        factor = -0.1;
-	                    }
-	                    var newCenter = center + factor * distance;
-	                    _this.dataRange = { min: newCenter - distance, max: newCenter + distance };
+	                    _this._changeOffset(deltaX < 0);
 	                }
 	                else if (_this.activeModifiers['shift']) {
-	                    var factor = 1.06;
-	                    if (deltaX < 0) {
-	                        factor = 0.94;
-	                    }
-	                    var newDistance = factor * distance;
-	                    _this.dataRange = { min: center - newDistance, max: center + newDistance };
+	                    _this._changeYRange(deltaX < 0);
 	                }
-	                event.preventDefault();
-	                _this.graph.setOptions({ dataAxis: { left: { range: { min: _this.dataRange.min, max: _this.dataRange.max } } } });
 	            }
 	        });
 	        EventBus_1.eventBus.on('modifierPressed', function (data) {
@@ -95980,6 +95978,40 @@
 	                _this.zoomable = true;
 	            }
 	        });
+	    };
+	    VisGraph.prototype._changeYRange = function (zoomIn) {
+	        var center = (this.dataRange.max + this.dataRange.min) / 2;
+	        var distance = center - this.dataRange.min;
+	        var factor = 1.06;
+	        if (zoomIn) {
+	            factor = 0.94;
+	        }
+	        var newDistance = factor * distance;
+	        this.dataRange = { min: center - newDistance, max: center + newDistance };
+	        this.graph.setOptions({ dataAxis: { left: { range: { min: this.dataRange.min, max: this.dataRange.max } } } });
+	    };
+	    VisGraph.prototype._changeOffset = function (up) {
+	        var center = (this.dataRange.max + this.dataRange.min) / 2;
+	        var distance = center - this.dataRange.min;
+	        var factor = 0.1;
+	        if (up) {
+	            factor = -0.1;
+	        }
+	        var newCenter = center + factor * distance;
+	        this.dataRange = { min: newCenter - distance, max: newCenter + distance };
+	        this.graph.setOptions({ dataAxis: { left: { range: { min: this.dataRange.min, max: this.dataRange.max } } } });
+	    };
+	    VisGraph.prototype._increaseOffset = function () {
+	        this._changeOffset(true);
+	    };
+	    VisGraph.prototype._decreaseOffset = function () {
+	        this._changeOffset(false);
+	    };
+	    VisGraph.prototype._increaseYRange = function () {
+	        this._changeYRange(true);
+	    };
+	    VisGraph.prototype._decreaseYRange = function () {
+	        this._changeYRange(false);
 	    };
 	    VisGraph.prototype._loadData = function (props) {
 	        if (props.data === null) {
