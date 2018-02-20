@@ -1,7 +1,5 @@
 import * as React from "react";
 
-import Flexbox            from 'flexbox-react';
-import { colors }         from "../styles";
 import * as visjs from "vis"
 import {eventBus} from "../util/EventBus";
 import {Util} from "../util/Util";
@@ -28,8 +26,8 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
 
   container;
   graph;
-  options;
   id;
+  customTimeId = null;
 
   zoomable = true;
   dataRange = null;
@@ -63,6 +61,11 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
       if (data.byUser) {
         eventBus.emit(topic, {start: data.start, end: data.end, id: this.id})
       }
+    });
+
+    this.graph.on("doubleClick", (data) => {
+      console.log("HERE", data)
+      eventBus.emit("setCustomTime", data.time)
     });
 
     eventBus.on(topic, (data) => {
@@ -127,6 +130,14 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
         this.zoomable = true;
       }
     })
+
+    eventBus.on('setCustomTime', (time) => {
+      if (this.customTimeId !== null) {
+        this.graph.removeCustomTime(this.customTimeId);
+      }
+
+      this.customTimeId = this.graph.addCustomTime(time);
+    })
   }
 
   _changeYRange(zoomIn) {
@@ -169,9 +180,6 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
   _decreaseYRange() {
     this._changeYRange(false);
   }
-
-
-
 
 
   _loadData(props : any) {

@@ -20,7 +20,12 @@ import {Util} from "../util/Util";
 import ContentSave from "material-ui/svg-icons/content/save";
 import HardwareKeyboardArrowUp from "material-ui/svg-icons/hardware/keyboard-arrow-up";
 import HardwareKeyboardArrowDown from "material-ui/svg-icons/hardware/keyboard-arrow-down";
+import ImageBlurOff from "material-ui/svg-icons/image/blur-off";
+import ImageFilter1 from "material-ui/svg-icons/image/filter-1";
 
+
+import * as visjs from "vis"
+const vis = (visjs as any);
 
 let buttonStyle = {margin:10, padding:10}
 const GRAPH_HEIGHT = 500;
@@ -56,6 +61,8 @@ class GraphSelector extends React.Component<any,any> {
   uuid: string;
   graphRef: any;
   recordEventSubscription;
+
+  dataset = new vis.DataSet();
 
   constructor(props) {
     super(props);
@@ -117,13 +124,21 @@ class GraphSelector extends React.Component<any,any> {
   unload(dataType) {
     switch (dataType) {
       case 'Voltage':
-        this._disable('setVoltageLogging'); break;
+        this._disable('setVoltageLogging');
+        eventBus.emit("ReleaseData", {topic: 'newVoltageData', datasetId: this.uuid})
+        break;
       case 'Current':
-        this._disable('setCurrentLogging'); break;
+        this._disable('setCurrentLogging');
+        eventBus.emit("ReleaseData", {topic: 'newCurrentData', datasetId: this.uuid})
+        break;
       case 'FilteredVoltage':
-        this._disable('setFilteredVoltageLogging'); break;
+        this._disable('setFilteredVoltageLogging');
+        eventBus.emit("ReleaseData", {topic: 'newFilteredCurrentData', datasetId: this.uuid})
+        break;
       case 'FilteredCurrent':
-        this._disable('setFilteredCurrentLogging'); break;
+        this._disable('setFilteredCurrentLogging');
+        eventBus.emit("ReleaseData", {topic: 'newFilteredVoltageData', datasetId: this.uuid})
+        break;
       default:
         break;
     }
@@ -144,19 +159,23 @@ class GraphSelector extends React.Component<any,any> {
     switch (dataType) {
       case 'Voltage':
         this._enable('setVoltageLogging');
-        stateChange = {...stateChange, dataReference: DataStore.voltage, dataSetName: 'voltage'}
+        stateChange = {...stateChange, dataReference: null, dataSetName: 'voltage'}
+        eventBus.emit("RequestData", {topic: 'newVoltageData', dataset: this.dataset, datasetId: this.uuid});
         break
       case 'Current':
         this._enable('setCurrentLogging');
-        stateChange = {...stateChange, dataReference: DataStore.current, dataSetName: 'current'}
+        stateChange = {...stateChange, dataReference: null, dataSetName: 'current'}
+        eventBus.emit("RequestData", {topic: 'newCurrentData', dataset: this.dataset, datasetId: this.uuid})
         break
       case 'FilteredVoltage':
         this._enable('setFilteredVoltageLogging');
-        stateChange = {...stateChange, dataReference: DataStore.filteredVoltage, dataSetName: 'filteredVoltage'}
+        stateChange = {...stateChange, dataReference: null, dataSetName: 'filteredVoltage'}
+        eventBus.emit("RequestData", {topic: 'newFilteredCurrentData', dataset: this.dataset, datasetId: this.uuid})
         break
       case 'FilteredCurrent':
         this._enable('setFilteredCurrentLogging');
-        stateChange = {...stateChange, dataReference: DataStore.filteredCurrent, dataSetName: 'filteredCurrent'}
+        stateChange = {...stateChange, dataReference: null, dataSetName: 'filteredCurrent'}
+        eventBus.emit("RequestData", {topic: 'newFilteredVoltageData', dataset: this.dataset, datasetId: this.uuid})
         break
       case 'switchState':
         activeOptions.dataAxis.left.range.min = -10;
@@ -252,6 +271,25 @@ class GraphSelector extends React.Component<any,any> {
     });
   }
 
+  _togglePin(dataType) {
+    // let command = null
+    // switch (dataType) {
+    //   case 'Current':
+    //     command = 'setDifferentialModeCurrent'; break;
+    //   case 'Voltage':
+    //     command = 'setDifferentialModeVoltage'; break;
+    //   default:
+    //     console.warn("INVALID TYPE TO TOGGLE DIFFERENTIAL", this.state.activeLabel);
+    //     return;
+    // }
+    //
+    // WSSendQueue.add({
+    //   type:'command',
+    //   command: command,
+    //   value: false
+    // });
+  }
+
 
 
   _resumeFeed() {
@@ -276,10 +314,10 @@ class GraphSelector extends React.Component<any,any> {
       this._resumeFeed();
     }
 
-    this.recordEventSubscription = eventBus.on("RecordingCycleAdded_" + this.state.dataSetName, (data) => {
+    this.recordEventSubscription = eventBus.on("RecordingCycleAdded_" + this.uuid, (data) => {
       this.setState({amountOfRecordedSamples: data});
       if (data >= 20000) {
-        this._stopRecoding();
+        this._stopRecording();
       }
     })
 
@@ -292,13 +330,13 @@ class GraphSelector extends React.Component<any,any> {
       this._resumeFeed();
     }
 
-    this.recordEventSubscription = eventBus.on("RecordingCycleAdded_" + this.state.dataSetName, (data) => { this.setState({amountOfRecordedSamples: data})})
+    this.recordEventSubscription = eventBus.on("RecordingCycleAdded_" + this.uuid, (data) => { this.setState({amountOfRecordedSamples: data})})
 
-    eventBus.emit("StartRecordingToDisk", this.state.dataSetName)
+    eventBus.emit("StartRecordingToDisk", this.state.dataSetName);
     this.setState({recordingToDisk: true, drawing: false, recordingRequested: false });
   }
 
-  _stopRecoding() {
+  _stopRecording() {
     if (!this.state.paused) {
       this._pauseFeed();
     }
@@ -328,10 +366,14 @@ class GraphSelector extends React.Component<any,any> {
       buttons.push(<IconButton key={this.uuid+'_decreaseGain'} tooltip="Decrease Gain" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => {  this._decreaseGain(this.state.activeLabel) }}>
         <ActionZoomOut color={colors.white.hex} />
       </IconButton>);
-      // buttons.push(<div key={this.uuid+'spacer3'} style={{height: 60}} />);
-      // buttons.push(<IconButton key={this.uuid+'_toggleDifferential'} tooltip="Toggle Differential" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => {  this._toggleDifferential(this.state.activeLabel) }}>
-      //   <ActionZoomOut color={colors.white.hex} />
-      // </IconButton>);
+      buttons.push(<div key={this.uuid+'spacer3'} style={{height: 60}} />);
+      buttons.push(<IconButton key={this.uuid+'_toggleDifferential'} tooltip="Toggle Differential" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => {  this._toggleDifferential(this.state.activeLabel) }}>
+        <ImageBlurOff color={colors.white.hex} />
+      </IconButton>);
+      buttons.push(<div key={this.uuid+'spacer4'} style={{height: 60}} />);
+      buttons.push(<IconButton key={this.uuid+'_togglePin'} tooltip="Toggle Pin" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => {  this._togglePin(this.state.activeLabel) }}>
+        <ImageFilter1 color={colors.white.hex} />
+      </IconButton>);
     }
 
     switch (this.state.activeLabel) {
@@ -455,7 +497,7 @@ class GraphSelector extends React.Component<any,any> {
         }}
         >
           <Flexbox flexDirection={'column'}>
-            <VisGraph  width={'100%'}  ref={(graphRef) => {this.graphRef = graphRef; }} height={GRAPH_HEIGHT} data={this.state.dataReference} options={this.state.activeOptions} realtimeData={this.state.realtimeData} />
+            <VisGraph  width={'100%'}  ref={(graphRef) => {this.graphRef = graphRef; }} height={GRAPH_HEIGHT} data={this.state.dataReference || this.dataset} options={this.state.activeOptions} realtimeData={this.state.realtimeData} />
           </Flexbox>
           { this._getLeftCommandIcons()  }
           { this._getRightCommandIcons() }
@@ -483,8 +525,8 @@ class GraphSelector extends React.Component<any,any> {
                 <div style={{margin:10, padding:10, backgroundColor:"#fff"}}><span>{"Cyclic data:"}</span></div>
                 <RaisedButton primary={true} style={buttonStyle} onClick={() => { this.load('Voltage') }} label={"Voltage"} />
                 <RaisedButton primary={true} style={buttonStyle} onClick={() => { this.load('Current') }} label={"Current"} />
-                <RaisedButton primary={true} style={buttonStyle} onClick={() => { this.load('FilteredVoltage') }} label={"TODO: Filtered Voltage"} />
-                <RaisedButton primary={true} style={buttonStyle} onClick={() => { this.load('FilteredCurrent') }} label={"TODO: Filtered Current"} />
+                {/*<RaisedButton primary={true} style={buttonStyle} onClick={() => { this.load('FilteredVoltage') }} label={"TODO: Filtered Voltage"} />*/}
+                <RaisedButton primary={true} style={buttonStyle} onClick={() => { this.load('FilteredCurrent') }} label={"Filtered Current"} />
                 <Flexbox flexGrow={1} />
               </Flexbox>
               <Flexbox flexGrow={0.2} />
@@ -579,7 +621,7 @@ class GraphSelector extends React.Component<any,any> {
         <RaisedButton
           label="Finish Recording"
           primary={true}
-          onClick={() => { this._stopRecoding(); }}
+          onClick={() => { this._stopRecording(); }}
         />,
       ]);
     }

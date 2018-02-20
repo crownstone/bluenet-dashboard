@@ -2,7 +2,8 @@
 type operationMode = "SETUP" | "NORMAL" | "DFU" | "UNKNOWN"
 
 interface dashboardState {
-  state: crownstoneState
+  state: crownstoneState,
+  adc: any
 }
 
 interface crownstoneState {

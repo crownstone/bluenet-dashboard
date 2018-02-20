@@ -1,8 +1,10 @@
 import {defaultStateSettings, stateReducer } from './reducers/state'
+import {adcConfigReducer, defaultADCSettings} from "./reducers/adc";
 
 
 const defaultValue : dashboardState = {
   state: defaultStateSettings,
+  adc: defaultADCSettings
 };
 
 export default (state: dashboardState = defaultValue, action: any = {}) => {
@@ -14,6 +16,7 @@ export default (state: dashboardState = defaultValue, action: any = {}) => {
   }
 
   return {
-    state: stateReducer(state.state, action)
+    state: stateReducer(state.state, action),
+    adc: adcConfigReducer(state.adc, action)
   }
 };
