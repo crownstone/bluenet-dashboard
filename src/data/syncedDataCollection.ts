@@ -21,7 +21,6 @@ class SyncedDataCollection {
   hasDataset = false;
   targetDatasets = {};
 
-
   recordingToBuffer = false;
   recordingToDisk = false;
 
@@ -38,7 +37,7 @@ class SyncedDataCollection {
     this.recordingToDisk = true;
     this.recordedData = [];
     for (let i = 0; i < this.data.length; i++) {
-      this.recordedData.push(this.data[i])
+      this.recordedData.push([this.data[i].x, this.data[i].y])
     }
     this.recordingSampleCounter = this.sampleCounter;
     this.recordingBufferCounter = this.bufferCounter;

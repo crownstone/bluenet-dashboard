@@ -51,7 +51,7 @@ class DataStoreClass {
       content:"Current (RAW)",
       className:'currentGraphStyle',
       options: {
-        drawPoints: true,
+        drawPoints: { size:2, style: 'circle'},
         shaded: {
           orientation: 'bottom' // top, bottom
         }
@@ -62,7 +62,7 @@ class DataStoreClass {
       content:"Voltage (RAW)",
       className:'voltageGraphStyle',
       options: {
-        drawPoints: true,
+        drawPoints: { size:2, style: 'circle'},
         shaded: {
           orientation: 'bottom' // top, bottom
         }

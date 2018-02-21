@@ -22,7 +22,7 @@ window["onKeyUp"] = function(event) {
   }
 }
 
-class VisGraph extends React.Component<{ width: any, height: any, options: any, data: any, realtimeData: boolean},any> {
+class VisGraph extends React.Component<{ width: any, height: any, options: any, data: any, realtimeData?: boolean},any> {
 
   container;
   graph;
@@ -64,13 +64,16 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
     });
 
     this.graph.on("doubleClick", (data) => {
-      console.log("HERE", data)
       eventBus.emit("setCustomTime", data.time)
     });
 
     eventBus.on(topic, (data) => {
       if (data.id === this.id) { return; }
       this.graph.setWindow(data.start, data.end, {animation:false})
+    })
+
+    eventBus.on("FIT_GRAPH", () => {
+      this.graph.fit();
     })
 
     this.graph.on("mousewheel", (event) => {
@@ -138,6 +141,7 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
 
       this.customTimeId = this.graph.addCustomTime(time);
     })
+
   }
 
   _changeYRange(zoomIn) {

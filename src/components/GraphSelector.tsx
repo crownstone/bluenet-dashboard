@@ -519,7 +519,7 @@ class GraphSelector extends React.Component<any,any> {
         >
           <Flexbox flexDirection={'column'}>
             <Flexbox height={'30px'} />
-            <Flexbox flexDirection={'row'} height={'500px'} width={'100%'}>
+            <Flexbox flexDirection={'row'} height={GRAPH_HEIGHT + 'px'} width={'100%'}>
               <Flexbox flexGrow={1} />
               <Flexbox flexDirection={'column'}>
                 <div style={{margin:10, padding:10, backgroundColor:"#fff"}}><span>{"Cyclic data:"}</span></div>

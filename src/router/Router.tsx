@@ -34,6 +34,7 @@ class App extends React.Component<{},{}> {
 
           <Route path={"/"} component={ Pages.AppContainer }>
             <Route path={"data"}     component={ Pages.Data  }       />
+            <Route path={"playback"} component={ Pages.Playback  }       />
           </Route>
           <Route path={"*"} component={ Pages.Error404  }   />
         </Router>

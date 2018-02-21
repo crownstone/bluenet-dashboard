@@ -20,9 +20,7 @@ class Error404 extends React.Component<any,any> {
         return (
           <MuiThemeProvider muiTheme={muiTheme}>
           <Flexbox flexDirection="column" minHeight="100vh">
-            <Header />
             <Flexbox flexGrow={1} flexDirection="row">
-              <SideMenu />
               <h1>404</h1>
               <Flexbox width="150px" />
             </Flexbox>
