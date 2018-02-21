@@ -25,6 +25,7 @@ import ImageFilter1 from "material-ui/svg-icons/image/filter-1";
 
 
 import * as visjs from "vis"
+import ImageBlurOn from "material-ui/svg-icons/image/blur-on";
 const vis = (visjs as any);
 
 let buttonStyle = {margin:10, padding:10}
@@ -84,6 +85,14 @@ class GraphSelector extends React.Component<any,any> {
       recordingRequested: false,
       drawing: false,
       amountOfRecordedSamples: 0,
+
+      voltagePin: null,
+      voltageRange: null,
+      voltageRefPin: null,
+
+      currentPin: null,
+      currentRange: null,
+      currentRefPin: null,
     }
 
     this.baseOptions = {
@@ -106,9 +115,18 @@ class GraphSelector extends React.Component<any,any> {
   componentDidMount() {
     this.unsubscribeStoreEvent = store.subscribe(() => {
       let state = store.getState();
-      if (state.state.connected !== this.state.connected) {
-        this.setState({connected: state.state.connected})
-      }
+      let changePayload = {};
+      if (state.state.connected !== this.state.connected) {  changePayload['connected'] = state.state.connected;   }
+
+      if (state.adc.voltage.pin    !== undefined && state.adc.voltage.pin    !== this.state.voltagePin)    {  changePayload['voltagePin']    = state.adc.voltage.pin    }
+      if (state.adc.voltage.range  !== undefined && state.adc.voltage.range  !== this.state.voltageRange)  {  changePayload['voltageRange']  = state.adc.voltage.range  }
+      if (state.adc.voltage.refPin !== undefined && state.adc.voltage.refPin !== this.state.voltageRefPin) {  changePayload['voltageRefPin'] = state.adc.voltage.refPin }
+      if (state.adc.current.pin    !== undefined && state.adc.current.pin    !== this.state.currentPin)    {  changePayload['currentPin']    = state.adc.current.pin    }
+      if (state.adc.current.range  !== undefined && state.adc.current.range  !== this.state.currentRange)  {  changePayload['currentRange']  = state.adc.current.range  }
+      if (state.adc.current.refPin !== undefined && state.adc.current.refPin !== this.state.currentRefPin) {  changePayload['currentRefPin'] = state.adc.current.refPin }
+
+      this.setState(changePayload)
+
     })
 
     eventBus.on("PauseFeed", () =>  { this.setState({paused: true});  })
@@ -220,6 +238,7 @@ class GraphSelector extends React.Component<any,any> {
     let command = null
     switch (dataType) {
       case 'Current':
+      case 'FilteredCurrent':
         command = 'increaseCurrentRange'; break;
       case 'Voltage':
         command = 'increaseVoltageRange'; break;
@@ -238,6 +257,7 @@ class GraphSelector extends React.Component<any,any> {
     let command = null
     switch (dataType) {
       case 'Current':
+      case 'FilteredCurrent':
         command = 'decreaseCurrentRange'; break;
       case 'Voltage':
         command = 'decreaseVoltageRange'; break;
@@ -256,6 +276,7 @@ class GraphSelector extends React.Component<any,any> {
     let command = null
     switch (dataType) {
       case 'Current':
+      case 'FilteredCurrent':
         command = 'setDifferentialModeCurrent'; break;
       case 'Voltage':
         command = 'setDifferentialModeVoltage'; break;
@@ -272,22 +293,23 @@ class GraphSelector extends React.Component<any,any> {
   }
 
   _togglePin(dataType) {
-    // let command = null
-    // switch (dataType) {
-    //   case 'Current':
-    //     command = 'setDifferentialModeCurrent'; break;
-    //   case 'Voltage':
-    //     command = 'setDifferentialModeVoltage'; break;
-    //   default:
-    //     console.warn("INVALID TYPE TO TOGGLE DIFFERENTIAL", this.state.activeLabel);
-    //     return;
-    // }
-    //
-    // WSSendQueue.add({
-    //   type:'command',
-    //   command: command,
-    //   value: false
-    // });
+    let command = null
+    switch (dataType) {
+      case 'Current':
+      case 'FilteredCurrent':
+        command = 'toggleCurrentChannelPin'; break;
+      case 'Voltage':
+        command = 'toggleVoltageChannelPin'; break;
+      default:
+        console.warn("INVALID TYPE TO TOGGLE DIFFERENTIAL", this.state.activeLabel);
+        return;
+    }
+
+    WSSendQueue.add({
+      type:'command',
+      command: command,
+      value: false
+    });
   }
 
 
@@ -357,6 +379,26 @@ class GraphSelector extends React.Component<any,any> {
       </IconButton>
     ];
 
+
+    let differentialKnown = false;
+    let pinKnown = false;
+    let differentialOn = false;
+    let activePin = 0;
+
+    if (this.state.activeLabel === 'Voltage') {
+      activePin = this.state.voltagePin;
+      pinKnown = this.state.voltagePin !== null;
+      differentialOn = this.state.voltageRefPin !== 255;
+      differentialKnown = this.state.voltagePin !== null;
+    }
+    else if (this.state.activeLabel === 'Current' || this.state.activeLabel === 'FilteredCurrent') {
+      activePin = this.state.currentPin;
+      pinKnown = this.state.currentPin !== null;
+      differentialOn = this.state.currentRefPin !== 255;
+      differentialKnown = this.state.currentRefPin !== null;
+    }
+
+
     let addSharedCyclicButtons = () => {
       buttons.push(<div key={this.uuid+'spacer1'} style={{height: 60}} />);
       buttons.push(<IconButton key={this.uuid+'_increaseGain'} tooltip="Increase Gain" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => { this._increaseGain(this.state.activeLabel) }}>
@@ -367,12 +409,8 @@ class GraphSelector extends React.Component<any,any> {
         <ActionZoomOut color={colors.white.hex} />
       </IconButton>);
       buttons.push(<div key={this.uuid+'spacer3'} style={{height: 60}} />);
-      buttons.push(<IconButton key={this.uuid+'_toggleDifferential'} tooltip="Toggle Differential" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => {  this._toggleDifferential(this.state.activeLabel) }}>
-        <ImageBlurOff color={colors.white.hex} />
-      </IconButton>);
-      buttons.push(<div key={this.uuid+'spacer4'} style={{height: 60}} />);
-      buttons.push(<IconButton key={this.uuid+'_togglePin'} tooltip="Toggle Pin" touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => {  this._togglePin(this.state.activeLabel) }}>
-        <ImageFilter1 color={colors.white.hex} />
+      buttons.push(<IconButton key={this.uuid+'_toggleDifferential'} tooltip={"Toggle Differential " + (differentialKnown ? ("(Currently "+(differentialOn ? 'ON)':'OFF)')) : "(Currently UNKNOWN)")} touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: differentialKnown ? colors.darkBackground.hex : colors.csOrange.hex }} onClick={() => {  this._toggleDifferential(this.state.activeLabel) }}>
+        {differentialOn ? <ImageBlurOff color={colors.white.hex} /> : <ImageBlurOn color={colors.white.hex} />}
       </IconButton>);
     }
 
@@ -380,6 +418,9 @@ class GraphSelector extends React.Component<any,any> {
       case 'Voltage':
       case 'FilteredVoltage':
         addSharedCyclicButtons();
+        buttons.push(<div key={this.uuid+'spacer4'} style={{height: 60}} />);
+        buttons.push(<div key={this.uuid+'pinValue'} style={{color: colors.white.hex, position:'relative', width:48, height:48, lineHeight: '48px', textAlign:'center', fontSize: '15pt',backgroundColor: pinKnown ? colors.darkBackground.hex : colors.csOrange.hex, borderRadius:24}}>{activePin === 100 ? "VDD" : (activePin === undefined || activePin === null ? '?' : activePin)}</div>)
+        buttons.push(<IconButton key={this.uuid+'_togglePin'} tooltip={"Toggle Pin " + (pinKnown ? "(Currently " + activePin + ')' : "(Currently UNKNOWN)")} touch={true} tooltipPosition="bottom-left" style={{...iconStyle, position:'relative', top:-48}} onClick={() => {  this._togglePin(this.state.activeLabel) }} />);
         break;
       case 'Current':
       case 'FilteredCurrent':

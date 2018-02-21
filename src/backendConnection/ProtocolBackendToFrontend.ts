@@ -71,7 +71,6 @@ class ProtocolBackendToFrontendClass {
       //   store.dispatch({type:'STATE_UPDATE', data: {measureReference: data.value }}); // TODO: match messageObj.data to the value which is set to true.
       //   break;
       case 'newAdcConfigPacket':
-        console.log(messageObj.data)
         store.dispatch({type: "ADC_CONFIG_UPDATE", data: {...messageObj.data}})
         break;
       case 'newVoltageData':

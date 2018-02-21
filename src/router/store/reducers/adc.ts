@@ -1,21 +1,21 @@
 import {update} from "../util/reducerUtil";
 
 export let defaultADCSettings = {
-  amountOfChannels: 2,
-  samplingPeriod: 200,
+  amountOfChannels: undefined,
+  samplingPeriod: undefined,
   voltage: {
-    pin:2,
-    range: 3000,
-    refPin: 255,
-    channelIndex:0,
+    pin:undefined,
+    range: undefined,
+    refPin: undefined,
+    channelIndex:undefined,
   },
   current: {
-    pin:2,
-    range: 3000,
-    refPin: 255,
-    channelIndex:0,
+    pin:undefined,
+    range: undefined,
+    refPin: undefined,
+    channelIndex:undefined,
   },
-  updatedAt: 1,
+  updatedAt: undefined,
 };
 
 
@@ -43,6 +43,7 @@ export const adcConfigReducer = (state = defaultADCSettings, action : any = {}) 
         newState.current.channelIndex = update(action.data.channels.current.channelIndex, newState.current.channelIndex);
 
         newState.updatedAt             = update(action.data.updatedAt,             newState.updatedAt);
+        
         return newState;
       }
       return state;
