@@ -404,11 +404,11 @@ class GraphSelector extends React.Component<any,any> {
 
     let addSharedCyclicButtons = () => {
       buttons.push(<div key={this.uuid+'spacer1'} style={{height: 60}} />);
-      buttons.push(<IconButton key={this.uuid+'_increaseRange'} tooltip={"Increase Range (Currently " + range + ")"} touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => { this._increaseGain(this.state.activeLabel) }}>
+      buttons.push(<IconButton key={this.uuid+'_decreaseRange'} tooltip={"Decrease Range (Currently " + range + ")"} touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => {  this._decreaseGain(this.state.activeLabel) }}>
         <ActionZoomIn color={colors.white.hex} />
       </IconButton>);
       buttons.push(<div key={this.uuid+'spacer2'} style={{height: 60}} />);
-      buttons.push(<IconButton key={this.uuid+'_decreaseRange'} tooltip={"Decrease Range (Currently " + range + ")"} touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => {  this._decreaseGain(this.state.activeLabel) }}>
+      buttons.push(<IconButton key={this.uuid+'_increaseRange'} tooltip={"Increase Range (Currently " + range + ")"} touch={true} tooltipPosition="bottom-left" style={{...iconStyle, backgroundColor: colors.darkBackground.hex}} onClick={() => { this._increaseGain(this.state.activeLabel) }}>
         <ActionZoomOut color={colors.white.hex} />
       </IconButton>);
       buttons.push(<div key={this.uuid+'spacer3'} style={{height: 60}} />);
