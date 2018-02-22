@@ -84,7 +84,7 @@ class SyncedDataCollection {
     let dtRaw = data.timestamp - this.lastTime;
     let timeOffset = 0;
     if (dtRaw !== 0) {
-      timeOffset = dtRaw * timeSampleClockPeriodMs - this.bufferSize * samplePeriodMs;
+      timeOffset = Math.max(0,dtRaw * timeSampleClockPeriodMs - this.bufferSize * samplePeriodMs);
       this.accumulatedDrift += timeOffset;
       this.recordingAccumulatedDrift += timeOffset;
     }
