@@ -96,7 +96,7 @@ class ReplayGraph extends React.Component<any,any> {
       width: '100%',
       height: 100,
       interpolation: false,
-      sampling: true,
+      sampling: false,
       drawPoints: false,
       dataAxis: {
         left: { range: { min: -100, max: 4100 }},

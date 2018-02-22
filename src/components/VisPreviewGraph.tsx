@@ -7,21 +7,6 @@ import {DataStore} from "../data/dataStore";
  
 const vis = (visjs as any);
 
-window["isKeyPressed"] = function(event) {
-  if (event.shiftKey || event.ctrlKey) {
-    eventBus.emit("modifierPressed", event) 
-  }
-}
-
-window["onKeyUp"] = function(event) {
-  if (event.shiftKey || event.ctrlKey) {
-    eventBus.emit("modifierPressed", event)
-  }
-  else {
-    eventBus.emit("modifierPressed", null)
-  }
-}
-
 class VisPreviewGraph extends React.Component<{ width: any, height: any, options: any, data: any, realtimeData?: boolean},any> {
 
   container;
