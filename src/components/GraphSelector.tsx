@@ -390,13 +390,15 @@ class GraphSelector extends React.Component<any,any> {
       activePin = this.state.voltagePin;
       pinKnown = this.state.voltagePin !== null;
       differentialOn = this.state.voltageRefPin !== 255;
-      range = this.state.voltageRange;
+      if (this.state.voltageRange)
+        range = this.state.voltageRange;
       differentialKnown = this.state.voltagePin !== null;
     }
     else if (this.state.activeLabel === 'Current' || this.state.activeLabel === 'FilteredCurrent') {
       activePin = this.state.currentPin;
       pinKnown = this.state.currentPin !== null;
-      range = this.state.currentRange;
+      if (this.state.currentRange)
+        range = this.state.currentRange;
       differentialOn = this.state.currentRefPin !== 255;
       differentialKnown = this.state.currentRefPin !== null;
     }
