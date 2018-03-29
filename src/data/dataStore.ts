@@ -135,10 +135,18 @@ class DataStoreClass {
         return i
       }
 
+      let saveData = function (data, fileName) {
+        var dlAnchorElem : any = document.getElementById('downloadAnchorElem');
+        let json = JSON.stringify(data,undefined, 2),
+          blob = new Blob([json], {type: "octet/stream"}),
+          url = window.URL.createObjectURL(blob);
+        dlAnchorElem.href = url;
+        dlAnchorElem.download = fileName;
+        dlAnchorElem.click();
+        window.URL.revokeObjectURL(url);
+      };
+
       // download data:
-      var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.recordToDiskData, undefined, 2));
-      var dlAnchorElem = document.getElementById('downloadAnchorElem');
-      dlAnchorElem.setAttribute("href",     dataStr     );
       let fileDate = new Date().getFullYear() + '-' +
         zeroPad(new Date().getMonth() +1)+ '-' +
         zeroPad(new Date().getDate()) + '_' +
@@ -146,9 +154,8 @@ class DataStoreClass {
         zeroPad(new Date().getMinutes()) + ':' +
         zeroPad(new Date().getSeconds());
       let filename = fileDate + "_DashboardData.json";
-      dlAnchorElem.setAttribute("download", filename);
-      dlAnchorElem.setAttribute("target", "_blank");
-      dlAnchorElem.click();
+
+      saveData(this.recordToDiskData, filename);
 
       // clear memory buffer
       this._clearRecordedDataBuffer();
