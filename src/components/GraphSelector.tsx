@@ -163,7 +163,7 @@ class GraphSelector extends React.Component<any,any> {
     this.setState({dataReference: null, graphActive: false, activeOptions: null, realtimeData: false, activeLabel: null, dataSetName: null, amountOfRecordedSamples: 0})
   }
 
-  load(dataType) {
+  getActiveOptions(dataType) {
     let activeOptions : any = naiveDeepCopy(this.baseOptions);
 
     // valid for most graphs
@@ -171,6 +171,36 @@ class GraphSelector extends React.Component<any,any> {
     activeOptions.end = DataStore.bufferCollectionLength*DataStore.bufferCount;
     activeOptions.dataAxis.left.range.min = -100;
     activeOptions.dataAxis.left.range.max = 4100;
+
+
+    switch (dataType) {
+      case 'Voltage':
+      case 'Current':
+      case 'FilteredVoltage':
+      case 'FilteredCurrent':
+        break
+      case 'switchState':
+        activeOptions.dataAxis.left.range.min = -10;
+        activeOptions.dataAxis.left.range.max = 150;
+        activeOptions.showMajorLabels = true;
+        break
+      case 'powerUsage':
+        activeOptions.dataAxis.left.range.min = -10;
+        activeOptions.dataAxis.left.range.max = 100;
+        activeOptions.showMajorLabels = true;
+        break;
+      case 'temperature':
+        activeOptions.dataAxis.left.range.min = -10;
+        activeOptions.dataAxis.left.range.max = 100;
+        activeOptions.showMajorLabels = true;
+        break;
+    }
+
+    return activeOptions;
+  }
+
+  load(dataType) {
+    let activeOptions : any = this.getActiveOptions(dataType)
 
     let stateChange : any = {showSourceSelection: false, graphActive: true, realtimeData:false, activeLabel: dataType, activeOptions: activeOptions, recording: false, paused: false};
 
@@ -196,21 +226,12 @@ class GraphSelector extends React.Component<any,any> {
         eventBus.emit("RequestData", {topic: 'newFilteredVoltageData', dataset: this.dataset, datasetId: this.uuid})
         break
       case 'switchState':
-        activeOptions.dataAxis.left.range.min = -10;
-        activeOptions.dataAxis.left.range.max = 150;
-        activeOptions.showMajorLabels = true;
         stateChange = {...stateChange, dataReference: DataStore.switchState, realtimeData: true, dataSetName: 'switchState'}
         break
       case 'powerUsage':
-        activeOptions.dataAxis.left.range.min = -10;
-        activeOptions.dataAxis.left.range.max = 100;
-        activeOptions.showMajorLabels = true;
         stateChange = {...stateChange, dataReference: DataStore.powerUsage, realtimeData: true, dataSetName: 'powerUsage'}
         break;
       case 'temperature':
-        activeOptions.dataAxis.left.range.min = -10;
-        activeOptions.dataAxis.left.range.max = 100;
-        activeOptions.showMajorLabels = true;
         stateChange = {...stateChange, dataReference: DataStore.temperature, realtimeData: true, dataSetName: 'temperature'}
         break;
     }
@@ -316,6 +337,9 @@ class GraphSelector extends React.Component<any,any> {
 
   _resumeFeed() {
     eventBus.emit("ResumeFeed", this.state.dataSetName);
+
+    let activeOptions = this.getActiveOptions(this.state.activeLabel)
+    this.graphRef.setRange(activeOptions.start, activeOptions.end)
   }
 
   _pauseFeed() {
@@ -671,8 +695,6 @@ class GraphSelector extends React.Component<any,any> {
         />,
       ]);
     }
-
-
 
     return (
       <Dialog

@@ -28,6 +28,7 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
   graph;
   id;
   customTimeId = null;
+  loadOnNextData = false;
 
   zoomable = true;
   dataRange = null;
@@ -142,6 +143,13 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
       this.customTimeId = this.graph.addCustomTime(time);
     })
 
+  }
+
+  setRange(min, max) {
+    if (this.props.realtimeData) {
+      this.graph.setWindow(new Date().valueOf() - 120000, new Date().valueOf() + 20000, {animation:false})
+    }
+    this.graph.setWindow(min, max, {animation:false})
   }
 
   _changeYRange(zoomIn) {

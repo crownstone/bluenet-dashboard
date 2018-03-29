@@ -38,7 +38,7 @@ class DataStoreClass {
   recordToDiskData : any = {};
 
 
-  sdm = new SyncedDataManager();
+  syncedDataManager = new SyncedDataManager();
 
 
 
@@ -117,13 +117,13 @@ class DataStoreClass {
     eventBus.on("StartRecordingToDisk", () => { this.recordingToDisk = true; })
     eventBus.on("StopRecordingToDisk", () => {
       this.recordingToDisk = false;
-      this.sdm.stopRecordingToDisk();
+      this.syncedDataManager.stopRecordingToDisk();
 
-      let topics = Object.keys(this.sdm.topicGroupMap);
+      let topics = Object.keys(this.syncedDataManager.topicGroupMap);
 
       topics.forEach((topic) => {
-        if (this.sdm.dataCollections[topic]) {
-          this.recordToDiskData[this.sdm.topicGroupMap[topic]] = this.sdm.dataCollections[topic].recordedData;
+        if (this.syncedDataManager.dataCollections[topic]) {
+          this.recordToDiskData[this.syncedDataManager.topicGroupMap[topic]] = this.syncedDataManager.dataCollections[topic].recordedData;
         }
       })
 
@@ -147,11 +147,12 @@ class DataStoreClass {
         zeroPad(new Date().getSeconds());
       let filename = fileDate + "_DashboardData.json";
       dlAnchorElem.setAttribute("download", filename);
+      dlAnchorElem.setAttribute("target", "_blank");
       dlAnchorElem.click();
 
       // clear memory buffer
       this._clearRecordedDataBuffer();
-      this.sdm.clearRecordedData()
+      this.syncedDataManager.clearRecordedData()
 
     })
   }
@@ -188,7 +189,7 @@ class DataStoreClass {
       case 'newVoltageData':
       case 'newFilteredCurrentData':
       case 'newFilteredVoltageData':
-        this.sdm.loadDataChannel(message)
+        this.syncedDataManager.loadDataChannel(message)
     }
 
     if (this.paused) { return; }
