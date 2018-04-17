@@ -28,7 +28,9 @@ class ProtocolBackendToFrontendClass {
       try {
         messageObj = JSON.parse(message);
       }
-      catch(err) {}
+      catch(err) {
+        console.log("Error parsing message", err)
+      }
 
     }
 
@@ -80,6 +82,8 @@ class ProtocolBackendToFrontendClass {
       case 'newServiceData':
         DataStore.translateIncomingData(messageObj);
         break;
+      default:
+        console.log("ProtocolBackendToFrontend: Could not translate message")
 
     }
   }

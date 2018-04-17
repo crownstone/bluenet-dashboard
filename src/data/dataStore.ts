@@ -196,7 +196,10 @@ class DataStoreClass {
       case 'newVoltageData':
       case 'newFilteredCurrentData':
       case 'newFilteredVoltageData':
-        this.syncedDataManager.loadDataChannel(message)
+        this.syncedDataManager.loadDataChannel(message);
+        break;
+      default:
+        console.log("Datastore: Unknown data type", message.topic)
     }
 
     if (this.paused) { return; }
