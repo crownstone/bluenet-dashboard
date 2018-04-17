@@ -137,9 +137,9 @@ class DataStoreClass {
 
       let saveData = function (data, fileName) {
         var dlAnchorElem : any = document.getElementById('downloadAnchorElem');
-        let json = JSON.stringify(data,undefined, 2),
-          blob = new Blob([json], {type: "octet/stream"}),
-          url = window.URL.createObjectURL(blob);
+        let json = JSON.stringify(data,undefined, 2);
+        let blob = new Blob([json], {type: "octet/stream"});
+        let url = window.URL.createObjectURL(blob);
         dlAnchorElem.href = url;
         dlAnchorElem.download = fileName;
         dlAnchorElem.click();
