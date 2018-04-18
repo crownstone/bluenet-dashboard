@@ -33,6 +33,7 @@ class WebSocketHandlerClass {
         return;
       }
       let message = e.data;
+
       eventBus.emit("receivedMessage", message);
     });
 

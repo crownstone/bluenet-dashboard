@@ -108,7 +108,6 @@ class SyncedDataCollection {
     }
     this.bufferCounter++;
 
-
     if (this.recordingToBuffer === false) {
       if (this.bufferCounter > this.bufferCollectionLimit) {
         this.updateDatasets();

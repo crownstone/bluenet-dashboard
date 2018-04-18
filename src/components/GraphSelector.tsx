@@ -218,12 +218,12 @@ class GraphSelector extends React.Component<any,any> {
       case 'FilteredVoltage':
         this._enable('setFilteredVoltageLogging');
         stateChange = {...stateChange, dataReference: null, dataSetName: 'filteredVoltage'}
-        eventBus.emit("RequestData", {topic: 'newFilteredCurrentData', dataset: this.dataset, datasetId: this.uuid})
+        eventBus.emit("RequestData", {topic: 'newFilteredVoltageData', dataset: this.dataset, datasetId: this.uuid})
         break
       case 'FilteredCurrent':
         this._enable('setFilteredCurrentLogging');
         stateChange = {...stateChange, dataReference: null, dataSetName: 'filteredCurrent'}
-        eventBus.emit("RequestData", {topic: 'newFilteredVoltageData', dataset: this.dataset, datasetId: this.uuid})
+        eventBus.emit("RequestData", {topic: 'newFilteredCurrentData', dataset: this.dataset, datasetId: this.uuid})
         break
       case 'switchState':
         stateChange = {...stateChange, dataReference: DataStore.switchState, realtimeData: true, dataSetName: 'switchState'}
