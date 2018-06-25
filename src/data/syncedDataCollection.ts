@@ -6,6 +6,7 @@ class SyncedDataCollection {
   bufferSize = 100;
 
   data = [];
+  averageData = [];
   sampleCounter = 0;
   bufferCounter = 0;
   accumulatedDrift = 0;
@@ -90,6 +91,19 @@ class SyncedDataCollection {
     }
 
     this.lastTime = data.timestamp;
+    let average = 0;
+    let minVal = 1e9;
+    let maxVal = -1e9;
+    let startSampleCounter = this.sampleCounter;
+    let endSampleCounter = this.sampleCounter;
+    if ((window as any).SHOW_AVERAGES == true) {
+      for (let i = 0; i < data.data.length; i++) {
+        average += data.data[i];
+        minVal = Math.min(minVal, data.data[i])
+        maxVal = Math.max(maxVal, data.data[i])
+      }
+      average = average / data.data.length;
+    }
 
     for (let i = 0; i < data.data.length; i++) {
       this.data[this.sampleCounter] = {id: this.groupName+this.sampleCounter, x: this.sampleCounter + this.accumulatedDrift, y: data.data[i], group: this.groupName};
@@ -106,6 +120,32 @@ class SyncedDataCollection {
       }
       this.sampleCounter++;
     }
+
+    if ((window as any).SHOW_AVERAGES == true) {
+      endSampleCounter = this.sampleCounter;
+      let sampleIndex = 0.5*(startSampleCounter + endSampleCounter);
+      this.averageData.push({id: this.groupName  +"_average" + sampleIndex,
+        x: sampleIndex + this.accumulatedDrift,
+        y: average,
+        group: this.groupName+"_average"
+      })
+      this.averageData.push({id: this.groupName+"_min" + sampleIndex,
+        x: sampleIndex + this.accumulatedDrift,
+        y: minVal,
+        group: this.groupName+"_min"
+      })
+      this.averageData.push({id: this.groupName+"_max" + sampleIndex,
+        x: sampleIndex + this.accumulatedDrift,
+        y: maxVal,
+        group: this.groupName+"_max"
+      })
+      this.averageData.push({id: this.groupName+"_mid" + sampleIndex,
+        x: sampleIndex + this.accumulatedDrift,
+        y: 0.5*(minVal+maxVal),
+        group: this.groupName+"_mid"
+      })
+    }
+
     this.bufferCounter++;
 
     if (this.recordingToBuffer === false) {
@@ -122,15 +162,15 @@ class SyncedDataCollection {
         }
       }
     }
-
-
-
   }
 
   updateDatasets() {
     let datasetIds = Object.keys(this.targetDatasets);
     for (let i = 0; i < datasetIds.length; i++) {
       this.targetDatasets[datasetIds[i]].update(this.data);
+      if ((window as any).SHOW_AVERAGES == true) {
+        this.targetDatasets[datasetIds[i]].update(this.averageData);
+      }
     }
   }
 

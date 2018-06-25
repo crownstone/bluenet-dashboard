@@ -192,6 +192,8 @@ class DataStoreClass {
    */
   translateIncomingData(message) {
     switch (message.topic) {
+      case 'newServiceData':
+        break;
       case 'newCurrentData':
       case 'newVoltageData':
       case 'newFilteredCurrentData':

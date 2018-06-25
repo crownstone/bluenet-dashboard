@@ -82,8 +82,11 @@ class ProtocolBackendToFrontendClass {
       case 'newServiceData':
         DataStore.translateIncomingData(messageObj);
         break;
+      case "adcRestarted":
+        DataStore.translateIncomingData(messageObj);
+        break;
       default:
-        console.log("ProtocolBackendToFrontend: Could not translate message")
+        console.log("ProtocolBackendToFrontend: Could not translate message", messageObj)
 
     }
   }

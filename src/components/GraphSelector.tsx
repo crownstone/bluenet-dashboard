@@ -295,6 +295,14 @@ class GraphSelector extends React.Component<any,any> {
 
   _toggleDifferential(dataType) {
     let command = null
+    let differentialOn = false;
+    if (this.state.activeLabel === 'Voltage') {
+      differentialOn = this.state.voltageRefPin !== 255;
+    }
+    else if (this.state.activeLabel === 'Current' || this.state.activeLabel === 'FilteredCurrent') {
+      differentialOn = this.state.currentRefPin !== 255;
+    }
+
     switch (dataType) {
       case 'Current':
       case 'FilteredCurrent':
@@ -309,7 +317,7 @@ class GraphSelector extends React.Component<any,any> {
     WSSendQueue.add({
       type:'command',
       command: command,
-      value: false
+      value: !differentialOn
     });
   }
 
