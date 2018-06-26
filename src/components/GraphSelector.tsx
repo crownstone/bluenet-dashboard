@@ -513,14 +513,14 @@ class GraphSelector extends React.Component<any,any> {
           <IconButton
             touch={true}
             style={{...iconStyle, backgroundColor: colors.green.hex}}
-            onClick={() => { this.graphRef._increaseOffset() }}
+            onClick={() => { this.graphRef._decreaseOffset() }}
           >
             <HardwareKeyboardArrowUp color={colors.white.hex} />
           </IconButton>
           <IconButton
             touch={true}
             style={{...iconStyle, backgroundColor: colors.green.hex}}
-            onClick={() => { this.graphRef._decreaseOffset() }}
+            onClick={() => { this.graphRef._increaseOffset() }}
           >
             <HardwareKeyboardArrowDown color={colors.white.hex} />
           </IconButton>
