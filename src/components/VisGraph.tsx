@@ -22,18 +22,34 @@ window["onKeyUp"] = function(event) {
   }
 }
 
-class VisGraph extends React.Component<{ width: any, height: any, options: any, data: any, realtimeData?: boolean},any> {
+function formatter(value) {
+  let dec = value - Math.floor(value);
+  if (dec > 0) {
+    return '' + (value - dec) + '.' + Math.floor(dec * 1000);
+  }
+  else {
+    return value;
+  }
+}
+
+
+class VisGraph extends React.Component<{ width: any, height: any, options: any, data: any, realtimeData?: boolean, showRangeInputs?: boolean},any> {
 
   container;
   graph;
   id;
+  inputMin;
+  inputMax;
   customTimeId = null;
   loadOnNextData = false;
+  timeSinceLastOffset = 0
+  timeSinceLastZoom = 0
 
   zoomable = true;
   dataRange = null;
   activeModifiers : any = {};
 
+  unsubscribe = []
 
   constructor() {
     super();
@@ -68,21 +84,26 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
       eventBus.emit("setCustomTime", data.time)
     });
 
-    eventBus.on(topic, (data) => {
+    this.unsubscribe.push(eventBus.on(topic, (data) => {
       if (data.id === this.id) { return; }
       this.graph.setWindow(data.start, data.end, {animation:false})
-    })
+    }))
 
-    eventBus.on("FIT_GRAPH", () => {
+    this.unsubscribe.push(eventBus.on("UpdatedDataset", (data) => {
+      if (data.id === this.id) { return; }
+      this.graph.setWindow(data.start, data.end, {animation:false})
+    }))
+
+    this.unsubscribe.push(eventBus.on("FIT_GRAPH", () => {
       this.graph.fit();
-    })
+    }))
 
     this.graph.on("mousewheel", (event) => {
       if (this.zoomable === false) {
 
         // deltaX and deltaY normalization from jquery.mousewheel.js
-        var deltaX = 0;
-        var deltaY = 0;
+        let deltaX = 0;
+        let deltaY = 0;
 
         // Old school scrollwheel delta
         if ( 'detail'      in event ) { deltaY = event.detail * -1;      }
@@ -120,7 +141,7 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
       }
     })
 
-    eventBus.on('modifierPressed', (data) => {
+    this.unsubscribe.push(eventBus.on('modifierPressed', (data) => {
       this.activeModifiers = {};
       if (data && data.shiftKey) { this.activeModifiers['shift'] = true; }
       if (data && data.ctrlKey)  { this.activeModifiers['ctrl'] = true; }
@@ -133,16 +154,20 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
         this.graph.setOptions({zoomable:true});
         this.zoomable = true;
       }
-    })
+    }))
 
-    eventBus.on('setCustomTime', (time) => {
+    this.unsubscribe.push(eventBus.on('setCustomTime', (time) => {
       if (this.customTimeId !== null) {
         this.graph.removeCustomTime(this.customTimeId);
       }
 
       this.customTimeId = this.graph.addCustomTime(time);
-    })
+    }))
 
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe.forEach((unsub) => { unsub() });
   }
 
   setRange(min, max) {
@@ -152,29 +177,91 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
     this.graph.setWindow(min, max, {animation:false})
   }
 
+  reloadDataRange() {
+    this.graph.setOptions({ dataAxis: { left: { range: {min: undefined, max: undefined}}} });
+    setTimeout(() => {
+      this._setDataRange();
+      this.inputMax.value = formatter(this.dataRange.max);
+      this.inputMin.value = formatter(this.dataRange.min);
+    }, 200);
+  }
+
+  _applyDataRange() {
+    if (this.dataRange.max === undefined) {
+      this._setDataRange();
+      this.graph.setOptions({
+        dataAxis: {
+          left: {
+            range: {min: this.dataRange.min, max: this.dataRange.max},
+          }
+        }
+      });
+      this.inputMax.value = formatter(this.dataRange.max);
+      this.inputMin.value = formatter(this.dataRange.min);
+    }
+  }
+
+  _setDataRange() {
+    this.dataRange.min = this.graph.linegraph.yAxisLeft.range.start;
+    this.dataRange.max = this.graph.linegraph.yAxisLeft.range.end;
+  }
+
   _changeYRange(zoomIn) {
+    if (this.dataRange.max === undefined) {
+      this._setDataRange()
+    }
+
     let center = (this.dataRange.max + this.dataRange.min) / 2;
     let distance = center - this.dataRange.min;
+
 
     let factor = 1.06;
     if (zoomIn) {
       factor = 0.94;
     }
+
+    let diff = new Date().valueOf() - this.timeSinceLastZoom;
+    if (diff < 3000) {
+      factor = Math.pow(factor, 1.5*(3-(diff*0.001)))
+    }
+    this.timeSinceLastZoom = new Date().valueOf();
+
+
     let newDistance = factor * distance;
     this.dataRange = {min: center - newDistance, max: center + newDistance};
-    this.graph.setOptions({dataAxis: {left: {range: {min: this.dataRange.min, max: this.dataRange.max}}}});
+    this.graph.setOptions({
+      dataAxis: {
+        left: {
+          range: {min: this.dataRange.min, max: this.dataRange.max}
+        }
+      }
+    });
+    this.inputMax.value = formatter(this.dataRange.max);
+    this.inputMin.value = formatter(this.dataRange.min);
   }
 
   _changeOffset(up) {
+    if (this.dataRange.max === undefined) {
+      this._setDataRange()
+    }
     let center = (this.dataRange.max + this.dataRange.min) / 2;
     let distance = center - this.dataRange.min;
     let factor = 0.1
     if (up) {
       factor = -0.1
     }
+
+    let diff = new Date().valueOf() - this.timeSinceLastOffset;
+    if (diff < 3000) {
+      factor *= 1.5*(3-(diff*0.001))
+    }
+    this.timeSinceLastOffset = new Date().valueOf();
     let newCenter = center + factor * distance;
     this.dataRange = {min: newCenter - distance, max: newCenter + distance};
     this.graph.setOptions({dataAxis: {left: {range: {min: this.dataRange.min, max: this.dataRange.max}}}});
+    this.inputMax.value = formatter(this.dataRange.max);
+    this.inputMin.value = formatter(this.dataRange.min);
+
   }
 
   _increaseOffset() {
@@ -204,6 +291,7 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
       }
     }
     else {
+      props.data.on("*", this._applyDataRange.bind(this))
       if (this.graph) {
         this.graph.setItems(props.data);
       }
@@ -215,13 +303,20 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
 
   componentWillReceiveProps(nextProps,nextState) {
     if (this.props.data !== nextProps.data) {
+      this.props.data.off("*", this._applyDataRange.bind(this))
       this._loadData(nextProps);
     }
   }
 
   render() {
     return (
-      <div ref={(div) => { this.container = div; }} id={'visDiv' + this.id} style={{position:'relative', width:'100%', height:'100%'}} />
+      <div style={{position:'relative', width:'100%', height:'100%'}} >
+        <div ref={(div) => { this.container = div; }} id={'visDiv' + this.id} style={{position:'relative', width:'100%', height: (window as any).GRAPH_HEIGHT - 30}} />
+        <div style={{display: this.props.showRangeInputs ? "block" : "none"}}>
+          <input ref={(inputMin) => { this.inputMin = inputMin; }} style={{width:60, height:25}} onBlur={() => { this.graph.setOptions({dataAxis: {left: {range: {min: Number(this.inputMin.value) }}}}); }} />
+          <input ref={(inputMax) => { this.inputMax = inputMax; }} style={{width:60, height:25}} onBlur={() => { this.graph.setOptions({dataAxis: {left: {range: {max: Number(this.inputMax.value) }}}}); }} />
+        </div>
+      </div>
     )
   }
 }

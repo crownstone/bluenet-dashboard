@@ -8,7 +8,7 @@ import store from "../router/store/store";
 import {colors} from "../styles";
 
 
-class StateIndicator extends React.Component<{keyValue?: string, colorMap?: any, numericValue?: number, value?: any, label?:string},any> {
+class StateIndicator extends React.Component<{keyValue?: string, colorMap?: any, numericValue?: number, value?: any, label?:string, onClick?},any> {
   render() {
     let backgroundColor = colors.gray.rgba(0.5);
     let color = colors.lightGray.hex;
@@ -40,7 +40,8 @@ class StateIndicator extends React.Component<{keyValue?: string, colorMap?: any,
         backgroundColor: backgroundColor,
         overflow:'hidden',
         borderRadius:6
-      }}>
+      }}
+      onClick={() => { if (this.props.onClick) { console.log("HERE"); this.props.onClick(); }}}>
         <Flexbox
           style={{position:'absolute', top:0,left:0, width: width*coverFactor, height: height, backgroundColor:color, padding: 5}}>
         </Flexbox>

@@ -18,6 +18,7 @@ import Dialog from 'material-ui/Dialog';
 import {eventBus} from "../util/EventBus";
 import {Util} from "../util/Util";
 import ContentSave from "material-ui/svg-icons/content/save";
+import NavigationRefresh from "material-ui/svg-icons/navigation/refresh";
 import HardwareKeyboardArrowUp from "material-ui/svg-icons/hardware/keyboard-arrow-up";
 import HardwareKeyboardArrowDown from "material-ui/svg-icons/hardware/keyboard-arrow-down";
 import ImageBlurOff from "material-ui/svg-icons/image/blur-off";
@@ -26,10 +27,10 @@ import ImageFilter1 from "material-ui/svg-icons/image/filter-1";
 
 import * as visjs from "vis"
 import ImageBlurOn from "material-ui/svg-icons/image/blur-on";
+import {StateIndicator} from "./StateIndicator";
 const vis = (visjs as any);
 
 let buttonStyle = {margin:10, padding:10}
-const GRAPH_HEIGHT = 500;
 
 function naiveDeepCopy( original )
 {
@@ -93,15 +94,30 @@ class GraphSelector extends React.Component<any,any> {
       currentPin: null,
       currentRange: null,
       currentRefPin: null,
-    }
+    };
 
     this.baseOptions = {
       width: '100%',
-      height: GRAPH_HEIGHT,
+      height: (window as any).GRAPH_HEIGHT - 30,
       interpolation: false,
       sampling: false,
       dataAxis: {
-        left: { range: { min: -5, max: 150 }},
+        left: {
+          range: { min: -5, max: 150 },
+          format: (value) => {
+            if (value < 1) {
+              return value.toPrecision(3)
+            }
+            let dec = value - Math.floor(value);
+
+            if (dec > 0) {
+              return '' + (value - dec) + '.' + Math.floor(dec * 1000);
+            }
+            else {
+              return value;
+            }
+          }
+        },
         visible: true,
         width: '100px'
       },
@@ -127,6 +143,18 @@ class GraphSelector extends React.Component<any,any> {
 
       this.setState(changePayload)
 
+      if (this.state.activeLabel === 'Voltage') {
+        (window as any).___PIN = this.state.voltagePin;
+        (window as any).___DIFFERENTIAL = this.state.voltageRefPin !== 255;
+        if (state.adc.voltage.range)
+          (window as any).___RANGE = state.adc.voltage.range;
+      }
+      else if (this.state.activeLabel === 'Current' || this.state.activeLabel === 'FilteredCurrent') {
+        (window as any).___PIN = this.state.currentPin;
+        if (state.adc.current.range)
+          (window as any).___RANGE = state.adc.current.range;
+        (window as any).___DIFFERENTIAL = this.state.currentRefPin !== 255;
+      }
     })
 
     eventBus.on("PauseFeed", () =>  { this.setState({paused: true});  })
@@ -169,8 +197,8 @@ class GraphSelector extends React.Component<any,any> {
     // valid for most graphs
     activeOptions.start = 0;
     activeOptions.end = DataStore.bufferCollectionLength*DataStore.bufferCount;
-    activeOptions.dataAxis.left.range.min = -100;
-    activeOptions.dataAxis.left.range.max = 4100;
+    activeOptions.dataAxis.left.range.min = undefined;
+    activeOptions.dataAxis.left.range.max = undefined;
 
 
     switch (dataType) {
@@ -355,7 +383,15 @@ class GraphSelector extends React.Component<any,any> {
   }
 
   _endRecordingAndDownload() {
-    eventBus.emit("StopRecordingToDisk", this.state.dataSetName)
+    eventBus.emit("StopRecordingToDisk", {
+      amountOfRecordedSamples: this.state.amountOfRecordedSamples,
+      voltagePin: this.state.voltagePin,
+      voltageRange: this.state.voltageRange,
+      voltageRefPin: this.state.voltageRefPin,
+      currentPin: this.state.currentPin,
+      currentRange: this.state.currentRange,
+      currentRefPin: this.state.currentRefPin,
+    })
     this.setState({recordingToDisk: false});
   }
 
@@ -469,7 +505,7 @@ class GraphSelector extends React.Component<any,any> {
         break;
     }
     return (
-      <div style={{position:'absolute', top:-24, right:-24, width: 48, height: GRAPH_HEIGHT}}>
+      <div style={{position:'absolute', top:-24, right:-24, width: 48, height: (window as any).GRAPH_HEIGHT}}>
         <Flexbox flexDirection={'column'}>
           {buttons}
         </Flexbox>
@@ -480,7 +516,7 @@ class GraphSelector extends React.Component<any,any> {
   _getLeftCommandIcons() {
     let iconStyle = {borderRadius:24};
     return (
-      <div style={{position:'absolute', top:-24, left:-24, width: 48, height: GRAPH_HEIGHT + 24}}>
+      <div style={{position:'absolute', top:-24, left:-24, width: 48, height: (window as any).GRAPH_HEIGHT - 6}}>
         <Flexbox flexDirection={'column'} flexGrow={1} height={'100%'}>
           <IconButton
             tooltip={this.state.paused === true ? "Resume" : "Pause"}
@@ -510,6 +546,13 @@ class GraphSelector extends React.Component<any,any> {
 
           <Flexbox flexGrow={1} />
 
+          <IconButton
+            touch={true}
+            style={{...iconStyle, backgroundColor: colors.green.hex}}
+            onClick={() => { this.graphRef.reloadDataRange() }}
+          >
+            <NavigationRefresh color={colors.white.hex} />
+          </IconButton>
           <IconButton
             touch={true}
             style={{...iconStyle, backgroundColor: colors.green.hex}}
@@ -552,7 +595,7 @@ class GraphSelector extends React.Component<any,any> {
           borderRadius: 15,
           borderColor:"#e5eaec",
           width:'100%',
-          height:GRAPH_HEIGHT,
+          height:(window as any).GRAPH_HEIGHT,
           backgroundImage: 'url("./images/notConnected.png',
           backgroundRepeat: 'no-repeat',
           backgroundPosition:'center',
@@ -571,11 +614,19 @@ class GraphSelector extends React.Component<any,any> {
           borderColor:"#e5eaec",
           backgroundColor: colors.white.hex,
           width:'100%',
-          height:GRAPH_HEIGHT,
+          height:(window as any).GRAPH_HEIGHT,
         }}
         >
           <Flexbox flexDirection={'column'}>
-            <VisGraph  width={'100%'}  ref={(graphRef) => {this.graphRef = graphRef; }} height={GRAPH_HEIGHT} data={this.state.dataReference || this.dataset} options={this.state.activeOptions} realtimeData={this.state.realtimeData} />
+            <VisGraph
+              width={'100%'}
+              ref={(graphRef) => {this.graphRef = graphRef; }}
+              height={(window as any).GRAPH_HEIGHT}
+              data={this.state.dataReference || this.dataset}
+              options={this.state.activeOptions}
+              realtimeData={this.state.realtimeData}
+              showRangeInputs={true}
+            />
           </Flexbox>
           { this._getLeftCommandIcons()  }
           { this._getRightCommandIcons() }
@@ -592,12 +643,12 @@ class GraphSelector extends React.Component<any,any> {
           borderColor:"#e5eaec",
           backgroundColor: colors.darkBackground.rgba(0.1),
           width:'100%',
-          height:GRAPH_HEIGHT,
+          height:(window as any).GRAPH_HEIGHT,
         }}
         >
           <Flexbox flexDirection={'column'}>
             <Flexbox height={'30px'} />
-            <Flexbox flexDirection={'row'} height={GRAPH_HEIGHT + 'px'} width={'100%'}>
+            <Flexbox flexDirection={'row'} height={(window as any).GRAPH_HEIGHT + 'px'} width={'100%'}>
               <Flexbox flexGrow={1} />
               <Flexbox flexDirection={'column'}>
                 <div style={{margin:10, padding:10, backgroundColor:"#fff"}}><span>{"Cyclic data:"}</span></div>
@@ -631,14 +682,14 @@ class GraphSelector extends React.Component<any,any> {
           borderRadius: 15,
           borderColor:"#e5eaec",
           width:'100%',
-          height:GRAPH_HEIGHT,
+          height:(window as any).GRAPH_HEIGHT,
           backgroundImage: 'url("./images/placeholder.png',
           backgroundRepeat: 'no-repeat',
           backgroundPosition:'center',
         }}
         >
           <a onClick={() => { this.setState({showSourceSelection: true})}}>
-            <div style={{ width:'100%', height:GRAPH_HEIGHT }}/>
+            <div style={{ width:'100%', height:(window as any).GRAPH_HEIGHT }}/>
           </a>
         </div>
       )
@@ -717,13 +768,60 @@ class GraphSelector extends React.Component<any,any> {
     )
   }
 
+  _getPinEntries() {
+    let pins = Object.keys((window as any).PIN_MULTIPLIERS);
+    let result = [];
+    pins.forEach((pin) => {
+      result.push(
+        <div key={pin}>
+          <span>{"multiplier for pin: " + pin + " = "}</span>
+          <input
+            placeholder={(window as any).PIN_MULTIPLIERS[pin]}
+            style={{width:60, height:25}}
+            onBlur={(event) => {
+              if ((event.target as any).value) {
+                (window as any).PIN_MULTIPLIERS[pin] = (event.target as any).value;
+              }
+            }
+          }/>
+        </div>
+      )
+    })
+    return result;
+  }
+
+  _getViewModes() {
+    let result = [];
+    result.push(
+      <div key={'volt'} style={{paddingBottom:5}}>
+        <StateIndicator label={ "Voltage" } value={(window as any).VIEW_MODE === 'Voltage'} onClick={() => {(window as any).VIEW_MODE = 'Voltage'; this.forceUpdate(); }} />
+      </div>
+    )
+    result.push(
+      <div key={'amp'} style={{paddingBottom:5}}>
+        <StateIndicator label={ "Amperage" } value={(window as any).VIEW_MODE === 'Amperage'} onClick={() => {(window as any).VIEW_MODE = 'Amperage'; this.forceUpdate(); }} />
+      </div>
+    )
+    result.push(
+      <div key={'adc'} style={{paddingBottom:5}}>
+        <StateIndicator label={ "ADC" } value={(window as any).VIEW_MODE === 'ADC'} onClick={() => {(window as any).VIEW_MODE = 'ADC'; this.forceUpdate(); }} />
+      </div>
+    )
+    return result;
+  }
+
   render() {
     return (
       <Flexbox flexDirection={'column'} style={{marginLeft: 30, marginRight:30, marginTop:30}}>
         { this.state.recordingToDisk ? <span style={{paddingLeft:30}}>{'Amount of samples recorded: ' + this.state.amountOfRecordedSamples}</span> : undefined}
-        <div style={{width:'100%', height:GRAPH_HEIGHT}}>
+        <div style={{width:'100%', height: (window as any).GRAPH_HEIGHT + 10}}>
           { this._getContent() }
         </div>
+        <Flexbox flexDirection={'row'}>
+          <div style={{width:300}}>{this._getPinEntries()}</div>
+          <Flexbox flex={"1"} width={'100%'}/>
+          <div style={{}}>{this._getViewModes()}</div>
+        </Flexbox>
         {this._getDialog()}
       </Flexbox>
     );

@@ -127,6 +127,15 @@ class DataStoreClass {
         }
       })
 
+
+      this.recordToDiskData.config = {
+        differential:    (window as any).___DIFFERENTIAL,
+        range:           (window as any).___RANGE,
+        pin:             (window as any).___PIN,
+        multipliers:     (window as any).PIN_MULTIPLIERS,
+        shuntResistance: (window as any).SHUNT_RESISTANCE,
+      };
+
       let zeroPad = (i) => {
         let nrI = Number(i)
         if (nrI < 10) {
@@ -200,6 +209,10 @@ class DataStoreClass {
       case 'newFilteredVoltageData':
         this.syncedDataManager.loadDataChannel(message);
         break;
+      case 'adcRestarted':
+        eventBus.emit("ADC_RESET_RECEIVED")
+        break;
+
       default:
         console.log("Datastore: Unknown data type", message.topic)
     }

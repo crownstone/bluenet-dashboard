@@ -13,14 +13,14 @@ const muiTheme = getMuiTheme({
   },
 });
 
+
+
 class Data extends React.Component<any,any> {
   render() {
     return (
       <MuiThemeProvider muiTheme={muiTheme}>
         <Flexbox flexDirection="column" minHeight="100vh" width="100%">
           <span style={{fontSize:15}}>Usage explanation: hold shift+scroll to zoom the Y-range, hold shift+control+scroll to offset the Y-range.</span>
-          <GraphSelector />
-          <GraphSelector />
           <GraphSelector />
         </Flexbox>
       </MuiThemeProvider>

@@ -18,6 +18,11 @@ class Playback extends React.Component<any,any> {
       <MuiThemeProvider muiTheme={muiTheme}>
         <Flexbox flexDirection="column" minHeight="100vh" width="100%">
           <span style={{fontSize:15}}>Usage explanation: hold shift+scroll to zoom the Y-range, hold shift+control+scroll to offset the Y-range.</span>
+          {
+            (window as any).MULTIPLICATION_FACTOR != 1 ?
+            <span style={{fontSize:15, fontWeight: 'bold'}}>{"ACTIVE MULTIPLICATION FACTOR: " + (window as any).MULTIPLICATION_FACTOR}</span> :
+            undefined
+          }
           <ReplayGraph />
         </Flexbox>
       </MuiThemeProvider>

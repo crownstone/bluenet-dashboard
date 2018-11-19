@@ -23,6 +23,10 @@ ProtocolFrontendToBackend.subscribe();
 // Create an enhanced history that syncs navigation events with the store
 const history = syncHistoryWithStore(hashHistory, store);
 
+(window as any).___DIFFERENTIAL = null;
+(window as any).___RANGE = null;
+(window as any).___PIN = null;
+
 class App extends React.Component<{},{}> {
   render() {
     return (

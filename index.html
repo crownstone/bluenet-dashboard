@@ -53,6 +53,20 @@
         // var WEBSOCKET_IP_ADDRESS = 'ws://localhost:9000'
 
         var SHOW_AVERAGES = true;
+        var GRAPH_HEIGHT = 600; // height in pixels
+        var REPLAY_GRAPH_HEIGHT = 600; // height in pixels
+        var ENABLE_GRAPH_AVERAGES = true;
+
+        var MULTIPLICATION_FACTOR = 1; // is multiplied after all the calculations
+
+        var VIEW_MODE = "ADC"
+
+        var SHUNT_RESISTANCE = 1e-3 // 1 milliOhm
+        var PIN_MULTIPLIERS = {
+          4: 30*30*56, // current pin
+          5: 30*56, // current pin
+          6: 56  // current pin
+        };
 
         onKeyUp = function() {}
         isKeyPressed = function() {}

@@ -25,13 +25,22 @@ class SyncedDataCollection {
   recordingToBuffer = false;
   recordingToDisk = false;
 
+  unsub = null;
+
   constructor(groupname) {
     this.groupName = groupname;
+
+    this.unsub = eventBus.on("ADC_RESET_RECEIVED", () => {
+      if (this.recordingToDisk) {
+        this.recordedData.push([this.recordingSampleCounter + this.recordingAccumulatedDrift, "ADC_RESET"]);
+      }
+    })
   }
 
   destroy() {
     this.targetDatasets = {};
     this.clearData();
+    this.unsub();
   }
 
   recordToDisk() {
@@ -78,6 +87,32 @@ class SyncedDataCollection {
       this.lastTime = data.timestamp;
     }
 
+    let globals = (window as any);
+    let multiplicationFactor = globals.MULTIPLICATION_FACTOR;
+    let conversion = function(val) { return val * multiplicationFactor;}
+    let pinMultiplier = 1;
+
+    if (globals.VIEW_MODE === "Voltage" || globals.VIEW_MODE === "Amperage") {
+      if (globals.___DIFFERENTIAL !== null) {
+        if (globals.VIEW_MODE === "Amperage" && globals.___PIN && globals.PIN_MULTIPLIERS[globals.___PIN]) {
+          pinMultiplier = globals.PIN_MULTIPLIERS[globals.___PIN] * globals.SHUNT_RESISTANCE;
+        }
+
+        if (globals.___DIFFERENTIAL === true) {
+          conversion = function (val) {
+            return 1.2 + ((val / 2047) * (Number(globals.___RANGE) * 0.001) * multiplicationFactor * pinMultiplier);
+          }
+        }
+        else {
+          conversion = function (val) {
+            return (val / 4096) * (Number(globals.___RANGE) * 0.001) * multiplicationFactor * pinMultiplier;
+          }
+        }
+      }
+    }
+
+
+
     let timeFactor = 5; // convert smallest used value to millis
     let samplePeriodMs = 200e-6 * 1000 * timeFactor; // 0.2 ms ==> with factor this becomes 1 ms
     let timeSampleClockPeriodMs = timeFactor * 1000/32768; // 32768 Hz ~= 0.03051 ms ==> with factor this becomes 0.1525 ms;
@@ -96,7 +131,7 @@ class SyncedDataCollection {
     let maxVal = -1e9;
     let startSampleCounter = this.sampleCounter;
     let endSampleCounter = this.sampleCounter;
-    if ((window as any).SHOW_AVERAGES == true) {
+    if (globals.SHOW_AVERAGES == true) {
       for (let i = 0; i < data.data.length; i++) {
         average += data.data[i];
         minVal = Math.min(minVal, data.data[i])
@@ -106,7 +141,7 @@ class SyncedDataCollection {
     }
 
     for (let i = 0; i < data.data.length; i++) {
-      this.data[this.sampleCounter] = {id: this.groupName+this.sampleCounter, x: this.sampleCounter + this.accumulatedDrift, y: data.data[i], group: this.groupName};
+      this.data[this.sampleCounter] = {id: this.groupName+this.sampleCounter, x: this.sampleCounter + this.accumulatedDrift, y: conversion(data.data[i]), group: this.groupName};
       // // recording data to disk:
       if (this.recordingToDisk) {
         this.recordedData.push([this.recordingSampleCounter + this.recordingAccumulatedDrift, data.data[i]]);
@@ -126,24 +161,24 @@ class SyncedDataCollection {
       let sampleIndex = 0.5*(startSampleCounter + endSampleCounter);
       this.averageData.push({id: this.groupName  +"_average" + sampleIndex,
         x: sampleIndex + this.accumulatedDrift,
-        y: average,
-        group: this.groupName+"_average"
-      })
+        y: conversion(average),
+        group: this.groupName + "_average"
+      });
       this.averageData.push({id: this.groupName+"_min" + sampleIndex,
         x: sampleIndex + this.accumulatedDrift,
-        y: minVal,
-        group: this.groupName+"_min"
-      })
+        y: conversion(minVal),
+        group: this.groupName + "_min"
+      });
       this.averageData.push({id: this.groupName+"_max" + sampleIndex,
         x: sampleIndex + this.accumulatedDrift,
-        y: maxVal,
-        group: this.groupName+"_max"
-      })
+        y: conversion(maxVal),
+        group: this.groupName + "_max"
+      });
       this.averageData.push({id: this.groupName+"_mid" + sampleIndex,
         x: sampleIndex + this.accumulatedDrift,
-        y: 0.5*(minVal+maxVal),
-        group: this.groupName+"_mid"
-      })
+        y: conversion(0.5*(minVal+maxVal)),
+        group: this.groupName + "_mid"
+      });
     }
 
     this.bufferCounter++;
