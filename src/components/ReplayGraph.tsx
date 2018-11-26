@@ -96,8 +96,14 @@ class ReplayGraph extends React.Component<any,any> {
             }
             let dec = value - Math.floor(value);
 
-            if (dec > 0) {
+            if (dec > 0.1) {
               return '' + (value - dec) + '.' + Math.floor(dec * 1000);
+            }
+            else if (dec > 0.01) {
+              return '' + (value - dec) + '.0' + Math.floor(dec * 1000);
+            }
+            else if (dec > 0.001) {
+              return '' + (value - dec) + '.00' + Math.floor(dec * 1000);
             }
             else {
               return value;
