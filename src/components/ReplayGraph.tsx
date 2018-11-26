@@ -5,6 +5,7 @@ import {colors} from "../styles";
 import {VisGraph} from "./VisGraph";
 import {Util} from "../util/Util";
 
+import * as fft from "fft-js"
 
 import * as visjs from "vis"
 import {VisTimeline} from "./VisTimeline";
@@ -54,13 +55,17 @@ class ReplayGraph extends React.Component<any,any> {
   previewBaseOptions : any;
   uuid: string;
   graphRef: any;
+  graphRefFFT: any;
   graphRefPreview: any;
   inputRef: any;
   timelineRef: any;
 
   jsonContent : any = {}
 
+  graphData = [];
+
   dataset = new vis.DataSet();
+  fftDataset = new vis.DataSet();
   datasetPreview = new vis.DataSet();
 
   visibleData = [];
@@ -90,7 +95,6 @@ class ReplayGraph extends React.Component<any,any> {
         left: {
           range: { min: undefined, max: undefined },
           format: (value) => {
-            console.log(value)
             if (value < 1) {
               return value.toPrecision(3)
             }
@@ -148,6 +152,8 @@ class ReplayGraph extends React.Component<any,any> {
     this.dataset.clear()
     let dataContent = [];
     let dataContentPreview = [];
+
+    this.graphData = [];
 
     this.visibleData.forEach((datasetName) => {
       if (!this.jsonContent)                     { return }
@@ -250,6 +256,7 @@ class ReplayGraph extends React.Component<any,any> {
 
         if (this.startTime <= point[0] && this.endTime >= point[0]) {
           dataContent.push({id: i + "ds:" + datasetName, x: point[0], y: conversion(point[1]), group: datasetName});
+          this.graphData.push(conversion(point[1]))
         }
 
         if (refreshPreview) {
@@ -264,12 +271,39 @@ class ReplayGraph extends React.Component<any,any> {
         }
       }
     })
+
     this.dataset.update(dataContent);
     if (refreshPreview) {
       this.datasetPreview.update(dataContentPreview);
     }
+
+
     eventBus.emit("FIT_GRAPH", refreshPreview)
   }
+
+
+  _getFFT() {
+    if (this.graphData.length > 0) {
+      let pow = Math.pow(2,Math.floor(Math.log(this.graphData.length)/Math.log(2)));
+      let d = []
+      for (let i = 0; i < pow; i++) {
+        d.push(this.graphData[i])
+      }
+
+      let phasors = fft.fft(d);
+
+      let frequencies = fft.util.fftFreq(phasors, 5000); // Sample rate and coef is just used for length, and frequency step
+      let magnitudes = fft.util.fftMag(phasors);
+
+      // this.fftDataset.clear()
+      let data = [];
+      for (let i = 0; i < frequencies.length; i++) {
+        data.push({id: i, x: frequencies[i], y: magnitudes[i]})
+      }
+      this.fftDataset.update(data);
+    }
+  }
+
 
   _loadData(refreshPreview) {
     this.setState({graphActive: true, showSourceSelection: false});
@@ -516,6 +550,7 @@ class ReplayGraph extends React.Component<any,any> {
   }
 
   render() {
+
     return (
       <Flexbox flexDirection={'column'} style={{marginLeft: 30, marginRight:30, marginTop:30, position:'relative'}}>
         {this._getDescription()}
@@ -534,6 +569,18 @@ class ReplayGraph extends React.Component<any,any> {
         <div style={{position:'relative', top:-100}}>
           <VisTimeline width={'100%'}  ref={(timelineRef) => {this.timelineRef = timelineRef; }} maxTime={this.state.maxTime} height={100} />
         </div>
+
+
+        <input type={"button"} onClick={()=>{this._getFFT()}} value={"Refresh FFT"} />
+        <VisGraph
+          width={'100%'}
+          ref={(graphRef) => {this.graphRefFFT = graphRef; }}
+          height={(window as any).REPLAY_GRAPH_HEIGHT}
+          data={this.fftDataset}
+          options={this.baseOptions}
+          showRangeInputs={true}
+          ignoreSync={true}
+        />
       </Flexbox>
     );
   }

@@ -33,7 +33,7 @@ function formatter(value) {
 }
 
 
-class VisGraph extends React.Component<{ width: any, height: any, options: any, data: any, realtimeData?: boolean, showRangeInputs?: boolean},any> {
+class VisGraph extends React.Component<{ width: any, height: any, options: any, data: any,ignoreSync?:boolean, realtimeData?: boolean, showRangeInputs?: boolean},any> {
 
   container;
   graph;
@@ -72,6 +72,9 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
     }
 
     let syncToken = this.props.realtimeData ? 'realTimeSync' : 'fixedSync'
+    if (this.props.ignoreSync === true) {
+      syncToken = this.id;
+    }
 
     let topic = syncToken + "_rangechanged";
     this.graph.on("rangechanged", (data) => {
