@@ -105,7 +105,7 @@ class GraphSelector extends React.Component<any,any> {
         left: {
           range: { min: -5, max: 150 },
           format: (value) => {
-            if (value < 1) {
+            if (value < 1 && value > 0) {
               return value.toPrecision(3)
             }
             let dec = value - Math.floor(value);

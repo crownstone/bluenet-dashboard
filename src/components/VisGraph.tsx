@@ -173,6 +173,10 @@ class VisGraph extends React.Component<{ width: any, height: any, options: any, 
     this.unsubscribe.forEach((unsub) => { unsub() });
   }
 
+  fitGraph() {
+    this.graph.fit();
+  }
+
   setRange(min, max) {
     if (this.props.realtimeData) {
       this.graph.setWindow(new Date().valueOf() - 120000, new Date().valueOf() + 20000, {animation:false})

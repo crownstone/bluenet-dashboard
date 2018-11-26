@@ -95,7 +95,7 @@ class ReplayGraph extends React.Component<any,any> {
         left: {
           range: { min: undefined, max: undefined },
           format: (value) => {
-            if (value < 1) {
+            if (value < 1 && value > 0) {
               return value.toPrecision(3)
             }
             let dec = value - Math.floor(value);
@@ -301,6 +301,7 @@ class ReplayGraph extends React.Component<any,any> {
         data.push({id: i, x: frequencies[i], y: magnitudes[i]})
       }
       this.fftDataset.update(data);
+      this.graphRefFFT.fitGraph()
     }
   }
 
