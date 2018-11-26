@@ -571,7 +571,7 @@ class ReplayGraph extends React.Component<any,any> {
           <VisTimeline width={'100%'}  ref={(timelineRef) => {this.timelineRef = timelineRef; }} maxTime={this.state.maxTime} height={100} />
         </div>
 
-        <div>
+        <Flexbox flexDirection={"column"}>
           <input type={"button"} onClick={()=>{this._getFFT()}} value={"Refresh FFT"} />
           <VisGraph
             width={'100%'}
@@ -582,7 +582,7 @@ class ReplayGraph extends React.Component<any,any> {
             showRangeInputs={true}
             ignoreSync={true}
           />
-        </div>
+        </Flexbox>
       </Flexbox>
     );
   }
