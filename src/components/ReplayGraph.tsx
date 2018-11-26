@@ -22,6 +22,8 @@ const vis = (visjs as any);
 
 let buttonStyle = {margin:10, padding:10}
 
+const ADC_RESET_STRING = "ADC_RESET";
+
 function naiveDeepCopy( original )
 {
   // First create an empty object with
@@ -175,6 +177,8 @@ class ReplayGraph extends React.Component<any,any> {
       let samplesForAverage = 0;
       for (let i = 0; i < this.jsonContent[datasetName].length; i++) {
         let point = this.jsonContent[datasetName][i];
+
+        if (point[1] === ADC_RESET_STRING) { continue; }
         if (this.startTime <= point[0] && this.endTime >= point[0]) {
           minVal = Math.min(minVal, point[1]);
           maxVal = Math.max(maxVal, point[1]);
@@ -195,6 +199,7 @@ class ReplayGraph extends React.Component<any,any> {
         let lastPoint = null;
         for (let i = 0; i < this.jsonContent[datasetName].length; i++) {
           let point = this.jsonContent[datasetName][i];
+          if (point[1] === ADC_RESET_STRING) { continue; }
           if (this.startTime <= point[0] && this.endTime >= point[0]) {
             if (lastPoint !== null) {
               let dy = point[1] - lastPoint[1];
@@ -235,7 +240,7 @@ class ReplayGraph extends React.Component<any,any> {
 
       for (let i = 0; i < this.jsonContent[datasetName].length; i++) {
         let point = this.jsonContent[datasetName][i];
-
+        if (point[1] === ADC_RESET_STRING) { continue; }
 
         if (this.startTime <= point[0] && this.endTime >= point[0]) {
           dataContent.push({id: i + "ds:" + datasetName, x: point[0], y: conversion(point[1]), group: datasetName});
