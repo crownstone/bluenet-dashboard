@@ -298,7 +298,9 @@ class ReplayGraph extends React.Component<any,any> {
       // this.fftDataset.clear()
       let data = [];
       for (let i = 0; i < frequencies.length; i++) {
-        data.push({id: i, x: frequencies[i], y: magnitudes[i]})
+        if (frequencies[i] > 2) {
+          data.push({id: i, x: frequencies[i], y: magnitudes[i]})
+        }
       }
       this.fftDataset.update(data);
       this.graphRefFFT.fitGraph()
